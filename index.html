@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SUNMAX | Каталог пленок</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===== ОБЩИЙ СТИЛЬ ===== */
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #1e1e1e;
+            margin: 0;
+            padding: 0;
+            color: #f0f0f0;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            background: linear-gradient(to bottom, #111, #1e1e1e);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #ffffff;
+        }
+
+        header p {
+            color: #888;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        main {
+            padding: 20px 5vw 80px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== КАТЕГОРИИ ===== */
+        #category-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .category-card {
+            position: relative;
+            background: #2a2a2a;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.5s ease;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: #fff;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .category-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (hover: hover) {
+            .category-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 10px 25px rgba(255, 64, 129, 0.4);
+            }
+        }
+
+        .category-card h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            z-index: 2;
+            position: relative;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .category-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1;
+            transition: background 0.3s ease;
+        }
+
+        @media (hover: hover) {
+            .category-card:hover::before {
+                background: rgba(0, 0, 0, 0.35);
+            }
+        }
+
+        .category-card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            filter: brightness(0.85);
+            transition: filter 0.3s ease;
+        }
+
+        @media (hover: hover) {
+            .category-card:hover img {
+                filter: brightness(1);
+            }
+        }
+
+        /* ===== ФИЛЬТРЫ ===== */
+        #filters {
+            display: none;
+            background: rgba(42, 42, 42, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 18px;
+            margin-bottom: 30px;
+            gap: 15px;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            align-items: center;
+        }
+
+        #filters select,
+        #filters input {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #efefef;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            min-width: 160px;
+        }
+
+        #filters select:hover,
+        #filters input:hover {
+            border-color: #555;
+            background: #222;
+        }
+
+        #filters select:focus,
+        #filters input:focus {
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+        }
+
+        #filters select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+
+        #filters button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s active, background 0.2s;
+        }
+
+        #filters button:hover {
+            background: #0063d1;
+        }
+
+        #filters button:active {
+            transform: scale(0.96);
+        }
+
+        /* ===== КАРТОЧКИ ТОВАРОВ (с 3D-переворотом) ===== */
+        #product-container {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        /* Обновленная оболочка карточки для поддержки 3D */
+        .product-card {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            perspective: 1200px;
+            transition: transform 0.25s ease, opacity 0.5s ease;
+            position: relative;
+            opacity: 0;
+            transform: translateY(30px);
+            display: block;
+        }
+
+        .product-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (hover: hover) {
+            .product-card:hover {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* Внутренний контейнер для вращения */
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Применяем переворот при наличии класса flipped */
+        .product-card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Общие стили для граней (полностью повторяют старый вид) */
+        .card-front, .card-back {
+            width: 100%;
+            backface-visibility: hidden;
+            background: #2b2b2b;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 64, 129, 0.05);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        @media (hover: hover) {
+            .product-card:hover .card-front, 
+            .product-card:hover .card-back {
+                box-shadow: 0 12px 25px rgba(255, 64, 129, 0.3);
+                border-color: rgba(255, 64, 129, 0.5);
+            }
+        }
+
+        .card-front {
+            height: 100%;
+        }
+
+        .card-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            transform: rotateY(180deg);
+        }
+
+        /* Стили скроллбара для длинного описания */
+        .desc-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .desc-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .desc-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 64, 129, 0.4);
+            border-radius: 4px;
+        }
+
+        /* Кнопка "Описание" на лицевой стороне (Аккуратная, как ссылка) */
+        .btn-desc {
+            background: transparent;
+            color: #999;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+            align-self: flex-start;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-desc:hover {
+            color: #ff4081;
+            text-decoration-color: #ff4081;
+        }
+
+        .btn-desc svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Кнопка "Назад" на обратной стороне */
+        .back-flip-btn {
+            margin-top: 15px; 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #fff; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            border-radius: 50px; 
+            padding: 10px; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .back-flip-btn:hover {
+            background: rgba(255, 64, 129, 0.15);
+            border-color: rgba(255, 64, 129, 0.5);
+            color: #ff4081;
+        }
+
+        /* Исходный контент карточки (возвращенные стили) */
+        .product-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 15px;
+            min-height: 50px;
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 5px;
+        }
+
+        .spec-label {
+            color: #888;
+        }
+
+        .spec-value {
+            color: #ff4081;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .badge {
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: linear-gradient(90deg, #ff4081, #c2185b);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
+            z-index: 5;
+        }
+
+        .zoomable-image {
+            cursor: zoom-in;
+            transition: opacity 0.2s;
+        }
+
+        .zoomable-image:hover {
+            opacity: 0.8;
+        }
+
+        /* ===== ГАЛЕРЕЯ В КАРТОЧКЕ ===== */
+        .card-gallery {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            flex-shrink: 0;
+            background: #1a1a1a;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .card-gallery-track {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-gallery-slide {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-gallery-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            cursor: zoom-in;
+            transition: opacity 0.2s;
+        }
+
+        @media (hover: hover) {
+            .card-gallery-slide img:hover {
+                opacity: 0.85;
+            }
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.1s;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .gallery-nav:hover {
+            background: rgba(255,64,129,0.75);
+        }
+
+        .gallery-nav:active {
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .gallery-nav.prev { left: 6px; }
+        .gallery-nav.next { right: 6px; }
+
+        .gallery-dots {
+            position: absolute;
+            bottom: 7px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            z-index: 5;
+        }
+
+        .gallery-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.35);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .gallery-dot.active {
+            background: #ff4081;
+            transform: scale(1.3);
+        }
+
+        /* ===== LIGHTBOX ГАЛЕРЕЯ ===== */
+        .lightbox-inner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 95vw;
+            max-height: 95vh;
+        }
+
+        .lightbox img {
+            width: auto;
+            height: auto;
+            max-width: 88vw;
+            max-height: 88vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s ease, opacity 0.2s ease;
+            display: block;
+        }
+
+        .lightbox.show img {
+            transform: scale(1);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.1s;
+            padding: 0;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255,64,129,0.6);
+        }
+
+        .lightbox-nav:active {
+            transform: translateY(-50%) scale(0.93);
+        }
+
+        .lightbox-nav.lb-prev { left: -60px; }
+        .lightbox-nav.lb-next { right: -60px; }
+
+        .lightbox-counter {
+            position: absolute;
+            bottom: -34px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .lightbox-dots {
+            position: absolute;
+            bottom: -34px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 7px;
+        }
+
+        .lightbox-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .lightbox-dot.active {
+            background: #ff4081;
+            transform: scale(1.35);
+        }
+
+        /* ===== КНОПКИ В КАРТОЧКЕ ===== */
+        .buttons-container {
+            margin-top: auto;
+            padding-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .add-to-cart-btn {
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+            padding: 12px 22px;
+            font-size: 0.90rem;
+            font-weight: 600;
+            width: 100%;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-roll {
+            background: linear-gradient(90deg, #ff4081, #c2185b);
+        }
+
+        .btn-meter {
+            background: #444;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.15);
+        }
+
+        .add-to-cart-btn:disabled,
+        .add-to-cart-btn.out-of-stock {
+            background: #3a3a3a !important;
+            color: #666 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            filter: none !important;
+            box-shadow: none !important;
+            border: 1px solid #444;
+        }
+
+        .back-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9000;
+            background: linear-gradient(90deg, #ff4081, #c2185b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            padding: 14px 22px;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(255, 64, 129, 0.3);
+            display: none;
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        /* ===== LIGHTBOX (ВСПЛЫВАЮЩЕЕ ОКНО ДЛЯ ФОТО) ===== */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .lightbox img {
+            width: auto;
+            height: auto;
+            max-width: 95vw;
+            max-height: 95vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .lightbox.show img {
+            transform: scale(1);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close:hover {
+            color: #ff4081;
+        }
+
+        /* ===== УВЕДОМЛЕНИЯ И ПРИВЕТСТВИЕ ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #ff4081, #c2185b);
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            font-size: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.35s ease;
+            z-index: 9999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #greeting {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #2b2b2b;
+            padding: 14px 18px;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .45);
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(25px);
+            pointer-events: none;
+            font-size: 15px;
+        }
+
+        #greeting .emoji {
+            font-size: 22px;
+        }
+
+        #greeting span {
+            color: #ff4081;
+            font-weight: 600;
+        }
+
+        @keyframes greetIn {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes greetOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(25px); }
+        }
+
+        #greeting.show {
+            animation: greetIn 0.6s ease forwards;
+        }
+
+        #greeting.hide {
+            animation: greetOut 0.6s ease forwards;
+        }
+
+        .error-msg {
+            color: #ff4081;
+            font-size: 1.2rem;
+            text-align: center;
+            width: 100%;
+            grid-column: 1 / -1;
+        }
+
+        /* Стили для бейджа наличия */
+        .availability-badge {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .status-available {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+        }
+
+        .status-out {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .status-low {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+            border: 1px solid #f1c40f;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(241, 196, 15, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); }
+        }
+
+
+        /* Показываем стрелки только на устройствах с мышкой */
+        @media (hover: hover) and (pointer: fine) {
+            .gallery-nav,
+            .lightbox-nav {
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.25s ease;
+            }
+
+            .card-gallery:hover .gallery-nav {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            /* В lightbox стрелки всегда активны */
+            .lightbox-nav {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
+        }
+
+        /* На тач-устройствах полностью убираем */
+        @media (hover: none), (pointer: coarse) {
+            .gallery-nav,
+            .lightbox-nav {
+                display: none !important;
+            }
+        }
+
+        /* ===== МОДАЛЬНОЕ ОКНО ВЫБОРА ЦВЕТА ===== */
+        .color-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: blur(8px);
+            z-index: 11000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .color-modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .color-modal {
+            background: #161616;
+            border-radius: 24px 24px 0 0;
+            padding: 20px 16px 28px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transform: translateY(50px);
+            transition: transform 0.38s cubic-bezier(0.34, 1.1, 0.64, 1);
+            box-shadow: 0 -12px 50px rgba(0,0,0,0.6);
+            overflow: hidden;
+        }
+        .color-modal-overlay.show .color-modal {
+            transform: translateY(0);
+        }
+        .color-modal-handle {
+            width: 40px; height: 4px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 4px;
+            margin: 0 auto -4px;
+            flex-shrink: 0;
+        }
+        .color-modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-shrink: 0;
+            gap: 10px;
+        }
+        .color-modal-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.3;
+        }
+        .color-modal-subtitle {
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 3px;
+        }
+        .color-modal-close {
+            background: rgba(255,255,255,0.07);
+            border: none; color: #888;
+            width: 32px; height: 32px;
+            border-radius: 50%; font-size: 17px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+        .color-modal-close:hover { background: rgba(255,64,129,0.2); color: #ff4081; }
+
+        /* Search */
+        .cm-search-wrap {
+            position: relative; flex-shrink: 0;
+        }
+        .cm-search-icon {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: #444; pointer-events: none;
+        }
+        .color-search {
+            background: #2a2a2a;
+            border: 1px solid #333;
+            color: #eee;
+            padding: 10px 14px 10px 38px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .color-search:focus {
+            border-color: #ff4081;
+            box-shadow: 0 0 0 3px rgba(255,64,129,0.12);
+        }
+        .color-search::placeholder { color: #444; }
+
+        /* Section tabs */
+        .cm-tabs {
+            display: flex; gap: 6px;
+            overflow-x: auto; scrollbar-width: none;
+            flex-shrink: 0; padding-bottom: 2px;
+        }
+        .cm-tabs::-webkit-scrollbar { display: none; }
+        .cm-tab {
+            background: #2a2a2a;
+            border: 1px solid #333;
+            color: #777;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 11px; font-weight: 700;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+            font-family: inherit;
+            flex-shrink: 0;
+        }
+        .cm-tab:hover { border-color: #555; color: #ccc; }
+        .cm-tab.active {
+            background: linear-gradient(90deg, #ff4081, #c2185b);
+            border-color: transparent; color: #fff;
+            box-shadow: 0 3px 10px rgba(255,64,129,0.3);
+        }
+
+        /* Scrollable grid area */
+        .cm-scroll {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 2px;
+        }
+        .cm-scroll::-webkit-scrollbar { width: 3px; }
+        .cm-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 3px; }
+        .cm-scroll::-webkit-scrollbar-thumb { background: rgba(255,64,129,0.35); border-radius: 3px; }
+
+        /* Section header inside grid */
+        .cm-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: #444;
+            padding: 10px 2px 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cm-section-label::after {
+            content: ""; flex: 1; height: 1px; background: #2a2a2a;
+        }
+
+        /* Color card grid */
+        .cm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        /* Individual color card */
+        .cm-card {
+            position: relative;
+            display: flex; flex-direction: column; align-items: center;
+            cursor: pointer;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #2a2a2a;
+            border: 1.5px solid rgba(255,255,255,0.04);
+            transition: transform 0.28s cubic-bezier(0.34,1.4,0.64,1),
+                        box-shadow 0.25s ease,
+                        border-color 0.2s ease;
+            opacity: 0;
+            transform: translateY(16px) scale(0.96);
+        }
+        .cm-card.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.2,0.64,1),
+                        box-shadow 0.25s ease, border-color 0.2s ease;
+        }
+        .cm-card:active { transform: scale(0.94) !important; transition: transform 0.1s !important; }
+        .cm-card.selected {
+            border-color: #ff4081 !important;
+            box-shadow: 0 0 0 2px #ff4081, 0 10px 24px rgba(255,64,129,0.3);
+        }
+        .cm-card.selected .cm-label-name { color: #ff4081; }
+
+        /* Swatch (square, aspect-ratio 1:1) */
+        .cm-swatch {
+            width: 100%; aspect-ratio: 1 / 1;
+            position: relative; overflow: hidden; flex-shrink: 0;
+        }
+
+        /* Finish overlays — Gloss */
+        .cm-card[data-finish="gloss"] .cm-swatch::after,
+        .cm-card[data-finish="vgloss"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(160deg,
+                rgba(255,255,255,0.32) 0%,
+                rgba(255,255,255,0.10) 28%,
+                transparent 56%);
+            pointer-events: none; z-index: 2;
+        }
+        /* Pearl */
+        .cm-card[data-finish="pearl"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(125deg,
+                transparent 0%, rgba(255,255,255,0.08) 20%,
+                rgba(180,220,255,0.20) 35%, rgba(255,200,240,0.16) 50%,
+                rgba(200,255,220,0.14) 65%, rgba(255,255,255,0.06) 80%,
+                transparent 100%);
+            background-size: 300% 300%;
+            animation: cmPearlShift 5s ease infinite;
+            pointer-events: none; z-index: 2;
+        }
+        @keyframes cmPearlShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        /* Chrome */
+        .cm-card[data-finish="chrome"] .cm-swatch::before,
+        .cm-card[data-finish="vchr"] .cm-swatch::before {
+            content: "";
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(105deg,
+                rgba(255,255,255,0.0) 0px, rgba(255,255,255,0.0) 20px,
+                rgba(255,255,255,0.18) 22px, rgba(255,255,255,0.0) 24px,
+                rgba(255,255,255,0.0) 60px,
+                rgba(200,230,255,0.10) 62px, rgba(255,255,255,0.0) 64px);
+            z-index: 1; pointer-events: none;
+        }
+        .cm-card[data-finish="chrome"] .cm-swatch::after,
+        .cm-card[data-finish="vchr"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(115deg,
+                transparent 0%, rgba(255,255,255,0.0) 35%,
+                rgba(255,255,255,0.55) 50%,
+                rgba(255,255,255,0.0) 65%, transparent 100%);
+            background-size: 300% 100%;
+            animation: cmChromeSweep 3s ease-in-out infinite;
+            z-index: 2; pointer-events: none;
+        }
+        @keyframes cmChromeSweep {
+            0%   { background-position: -100% 0; opacity: 0; }
+            20%  { opacity: 1; }
+            80%  { opacity: 1; }
+            100% { background-position: 200% 0; opacity: 0; }
+        }
+        /* Metal */
+        .cm-card[data-finish="metal"] .cm-swatch::before,
+        .cm-card[data-finish="vmetal"] .cm-swatch::before {
+            content: "";
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(90deg,
+                transparent 0px, transparent 2px,
+                rgba(255,255,255,0.025) 2px, rgba(255,255,255,0.025) 3px);
+            z-index: 1; pointer-events: none;
+        }
+        .cm-card[data-finish="metal"] .cm-swatch::after,
+        .cm-card[data-finish="vmetal"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(150deg,
+                rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 30%, transparent 60%);
+            z-index: 2; pointer-events: none;
+        }
+        /* Matt / PPF */
+        .cm-card[data-finish="matt"] .cm-swatch::after,
+        .cm-card[data-finish="vmatt"] .cm-swatch::after,
+        .cm-card[data-finish="ppf"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, transparent 42%);
+            z-index: 2; pointer-events: none;
+        }
+        /* Satin */
+        .cm-card[data-finish="vsatin"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(155deg,
+                rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 35%, transparent 65%);
+            z-index: 2; pointer-events: none;
+        }
+        /* Ghost */
+        .cm-card[data-finish="vghost"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(130deg,
+                transparent 0%, rgba(200,240,255,0.15) 25%,
+                rgba(255,200,255,0.15) 50%, rgba(200,255,200,0.12) 75%, transparent 100%);
+            background-size: 300% 300%;
+            animation: cmPearlShift 4s ease infinite;
+            pointer-events: none; z-index: 2;
+        }
+        /* Fantasy */
+        .cm-card[data-finish="vfantasy"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(120deg,
+                rgba(255,100,150,0.18) 0%, rgba(100,200,255,0.18) 33%,
+                rgba(100,255,150,0.18) 66%, rgba(255,200,100,0.18) 100%);
+            background-size: 300% 100%;
+            animation: cmFantasySweep 5s ease-in-out infinite alternate;
+            pointer-events: none; z-index: 2;
+        }
+        @keyframes cmFantasySweep {
+            0%   { background-position: 0% 0; }
+            100% { background-position: 200% 0; }
+        }
+        /* Diamond */
+        .cm-card[data-finish="vdiamond"] .cm-swatch::before {
+            content: "";
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(45deg,
+                transparent 0px, transparent 4px,
+                rgba(255,255,255,0.06) 4px, rgba(255,255,255,0.06) 5px);
+            z-index: 1; pointer-events: none;
+        }
+        .cm-card[data-finish="vdiamond"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(115deg,
+                transparent 0%, rgba(255,255,255,0.0) 35%,
+                rgba(255,255,255,0.45) 50%,
+                rgba(255,255,255,0.0) 65%, transparent 100%);
+            background-size: 300% 100%;
+            animation: cmChromeSweep 4s ease-in-out infinite;
+            z-index: 2; pointer-events: none;
+        }
+        /* Carbon */
+        .cm-card[data-finish="vcarbon"] .cm-swatch::before {
+            content: "";
+            position: absolute; inset: 0;
+            background:
+                repeating-linear-gradient(45deg,
+                    rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 3px,
+                    rgba(0,0,0,0.0) 3px, rgba(0,0,0,0.0) 6px),
+                repeating-linear-gradient(-45deg,
+                    rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 3px,
+                    rgba(0,0,0,0.0) 3px, rgba(0,0,0,0.0) 6px);
+            z-index: 1; pointer-events: none;
+        }
+        .cm-card[data-finish="vcarbon"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(150deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+            z-index: 2; pointer-events: none;
+        }
+        /* Coral */
+        .cm-card[data-finish="vcoral"] .cm-swatch::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(150deg,
+                rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 40%, transparent 65%);
+            pointer-events: none; z-index: 2;
+        }
+
+        /* Finish badge + check */
+        .cm-finish-badge {
+            position: absolute; bottom: 6px; right: 6px;
+            backdrop-filter: blur(6px);
+            font-size: 8px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            padding: 2px 6px; border-radius: 20px; z-index: 5;
+        }
+        .cm-check {
+            position: absolute; top: 6px; left: 6px;
+            width: 20px; height: 20px;
+            background: #ff4081; border-radius: 50%;
+            display: none; align-items: center; justify-content: center;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(255,64,129,0.6);
+            animation: cmPopIn 0.22s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        .cm-check svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 3; fill: none; }
+        @keyframes cmPopIn {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+        .cm-card.selected .cm-check { display: flex; }
+
+        /* Card label */
+        .cm-label {
+            padding: 7px 6px 9px;
+            text-align: center; width: 100%; box-sizing: border-box;
+        }
+        .cm-label-num {
+            font-size: 9px; color: #444;
+            font-weight: 700; letter-spacing: 1px; margin-bottom: 2px;
+        }
+        .cm-label-name {
+            font-size: 10px; font-weight: 600;
+            color: #bbb; line-height: 1.3;
+            word-break: break-word;
+        }
+
+        /* ===== ОСТАТОК ===== */
+        .cm-stock {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            padding: 2px 7px 2px 5px;
+            border-radius: 20px;
+            margin-bottom: 5px;
+        }
+        .cm-stock-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .cm-stock.high  { background: rgba(52,199,89,0.13);  color: #34c759; }
+        .cm-stock.high  .cm-stock-dot { background: #34c759; box-shadow: 0 0 4px rgba(52,199,89,0.55); }
+        .cm-stock.mid   { background: rgba(255,159,10,0.13); color: #ff9f0a; }
+        .cm-stock.mid   .cm-stock-dot { background: #ff9f0a; box-shadow: 0 0 4px rgba(255,159,10,0.55); }
+        .cm-stock.low   { background: rgba(255,69,58,0.13);  color: #ff453a; }
+        .cm-stock.low   .cm-stock-dot { background: #ff453a; box-shadow: 0 0 4px rgba(255,69,58,0.45); animation: cmStockPulse 2s ease infinite; }
+        @keyframes cmStockPulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+        .cm-stock.unknown { background: rgba(255,255,255,0.05); color: #4a4a4a; }
+        .cm-stock.unknown .cm-stock-dot { background: #3a3a3a; }
+
+        /* Highlight layer for mouse tracking */
+        .cm-swatch-hl {
+            position: absolute; inset: 0;
+            pointer-events: none; z-index: 3;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Bottom confirm bar */
+        .cm-confirm-bar {
+            flex-shrink: 0;
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 10px 14px;
+            border: 1px solid rgba(255,255,255,0.05);
+            min-height: 62px;
+        }
+        .cm-confirm-preview {
+            width: 40px; height: 40px;
+            border-radius: 10px; flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,0.15);
+            background: #333;
+            transition: background 0.3s;
+        }
+        .cm-confirm-info { flex: 1; min-width: 0; }
+        .cm-confirm-num  { font-size: 10px; color: #555; font-weight: 700; letter-spacing: 0.5px; }
+        .cm-confirm-name { font-size: 14px; font-weight: 700; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cm-confirm-name.placeholder { color: #444; font-weight: 400; font-size: 13px; }
+        .color-modal-confirm {
+            background: linear-gradient(90deg, #ff4081, #c2185b);
+            color: white; border: none; border-radius: 50px;
+            padding: 12px 20px; font-size: 0.88rem; font-weight: 700;
+            cursor: pointer; white-space: nowrap;
+            font-family: inherit;
+            box-shadow: 0 5px 16px rgba(255,64,129,0.35);
+            transition: transform 0.2s, filter 0.2s;
+            flex-shrink: 0;
+        }
+        .color-modal-confirm:hover   { filter: brightness(1.1); transform: translateY(-1px); }
+        .color-modal-confirm:active  { transform: scale(0.96); }
+        .color-modal-confirm:disabled {
+            background: #333; color: #555;
+            cursor: not-allowed; filter: none; box-shadow: none;
+        }
+
+        /* ===== ТЭГЛАЙН КАТЕГОРИИ ===== */
+        .category-tagline {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 5px 0 0;
+            z-index: 2;
+            position: relative;
+            letter-spacing: 0.3px;
+            line-height: 1.4;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        }
+
+        /* ===== КНОПКА ИНФО НА КАРТОЧКЕ КАТЕГОРИИ ===== */
+        .category-info-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.75);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease,
+                        color 0.2s ease, transform 0.15s ease;
+            padding: 0;
+        }
+
+        .category-info-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .category-info-btn:hover {
+            background: rgba(255, 64, 129, 0.65);
+            border-color: rgba(255, 64, 129, 0.8);
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        .category-info-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== МОДАЛ ОПИСАНИЯ КАТЕГОРИИ ===== */
+        .cat-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 9000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .cat-modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .cat-modal {
+            background: #1e1e1e;
+            border-radius: 24px 24px 0 0;
+            padding: 0 0 32px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 88vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            border-top: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+        }
+
+        .cat-modal-overlay.show .cat-modal {
+            transform: translateY(0);
+        }
+
+        .cat-modal-handle {
+            width: 40px;
+            height: 4px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 2px;
+            margin: 14px auto 0;
+        }
+
+        .cat-modal-hero {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+            margin-top: 16px;
+        }
+
+        .cat-modal-body {
+            padding: 24px 24px 0;
+        }
+
+        .cat-modal-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #ff4081;
+            margin-bottom: 6px;
+        }
+
+        .cat-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.25;
+            margin-bottom: 16px;
+        }
+
+        .cat-modal-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin-bottom: 16px;
+        }
+
+        .cat-modal-desc {
+            font-size: 0.92rem;
+            color: rgba(255,255,255,0.72);
+            line-height: 1.7;
+            margin-bottom: 22px;
+        }
+
+        .cat-modal-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .cat-modal-feature {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 11px 14px;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.75);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cat-modal-feature::before {
+            content: "";
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff4081;
+            flex-shrink: 0;
+        }
+
+        .cat-modal-cta {
+            width: 100%;
+            background: linear-gradient(135deg, #ff4081, #c2185b);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 28px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            letter-spacing: 0.5px;
+        }
+
+        .cat-modal-cta:hover { opacity: 0.88; }
+        .cat-modal-cta:active { transform: scale(0.97); }
+
+        .cat-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.08);
+            border: none;
+            color: rgba(255,255,255,0.6);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .cat-modal-close:hover {
+            background: rgba(255,64,129,0.25);
+            color: #ff4081;
+        }
+
+        /* Скроллбар для модала — скрыт */
+        .cat-modal::-webkit-scrollbar { display: none; }
+        .cat-modal { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>SUNMAX PREMIUM</h1>
+        <p>КАТАЛОГ ЗАЩИТНЫХ ПЛЕНОК</p>
+    </header>
+
+    <main>
+        <div id="filters">
+            <select id="sort">
+                <option value="">Сортировка по умолчанию</option>
+                <option value="price-asc">Цена ↑</option>
+                <option value="price-desc">Цена ↓</option>
+                <option value="name-asc">А → Я</option>
+                <option value="name-desc">Я → А</option>
+            </select>
+
+            <input type="number" id="minPrice" placeholder="Цена от (рулон)">
+            <input type="number" id="maxPrice" placeholder="Цена до (рулон)">
+        </div>
+
+        <div id="category-container"></div>
+        <div id="product-container"></div>
+
+        <button class="back-btn" id="backBtn">← Назад</button>
+    </main>
+
+    <!-- Всплывающее окно для просмотра изображений -->
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close" id="lightboxClose">&times;</span>
+        <div class="lightbox-inner">
+            <button class="lightbox-nav lb-prev" id="lbPrev">&#8249;</button>
+            <img id="lightboxImg" src="" alt="Full Image">
+            <button class="lightbox-nav lb-next" id="lbNext">&#8250;</button>
+            <div class="lightbox-dots" id="lightboxDots"></div>
+        </div>
+    </div>
+
+    <div id="greeting">
+        <div class="emoji">👋</div>
+        <div>Привет, <span id="user-name">Гость</span></div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- ===== МОДАЛЬНОЕ ОКНО ВЫБОРА ЦВЕТА ===== -->
+    <div id="colorModalOverlay" class="color-modal-overlay">
+        <div class="color-modal">
+            <div class="color-modal-handle"></div>
+            <div class="color-modal-header">
+                <div>
+                    <div class="color-modal-title" id="colorModalTitle">Выберите цвет</div>
+                    <div class="color-modal-subtitle" id="colorModalSubtitle"></div>
+                </div>
+                <button class="color-modal-close" id="colorModalClose">&times;</button>
+            </div>
+            <div class="cm-search-wrap">
+                <svg class="cm-search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" class="color-search" id="colorSearch" placeholder="Поиск по названию или номеру…" autocomplete="off">
+            </div>
+            <div class="cm-tabs" id="cmTabs"></div>
+            <div class="cm-scroll" id="cmScroll"></div>
+            <div class="cm-confirm-bar">
+                <div class="cm-confirm-preview" id="cmConfirmPreview"></div>
+                <div class="cm-confirm-info">
+                    <div class="cm-confirm-num" id="cmConfirmNum"></div>
+                    <div class="cm-confirm-name placeholder" id="cmConfirmName">Цвет не выбран</div>
+                </div>
+                <button class="color-modal-confirm" id="colorModalConfirm" disabled>Добавить →</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ===== МОДАЛ ОПИСАНИЯ КАТЕГОРИИ ===== -->
+    <div id="catModalOverlay" class="cat-modal-overlay">
+        <div class="cat-modal" id="catModal">
+            <div class="cat-modal-handle"></div>
+            <button class="cat-modal-close" id="catModalClose">&times;</button>
+            <div class="cat-modal-body">
+                <div class="cat-modal-label">Категория</div>
+                <div class="cat-modal-title" id="catModalTitle"></div>
+                <div class="cat-modal-divider"></div>
+                <p class="cat-modal-desc" id="catModalDesc"></p>
+                <div class="cat-modal-features" id="catModalFeatures"></div>
+                <button class="cat-modal-cta" id="catModalCta">Смотреть товары →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        const isTouchDevice = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+
+        /* Имя пользователя */
+        let userName = "Гость";
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            userName = tg.initDataUnsafe.user.first_name;
+        }
+        document.getElementById("user-name").textContent = userName;
+
+        /* Приветствие */
+        const greeting = document.getElementById("greeting");
+        setTimeout(() => greeting.classList.add("show"), 300);
+        setTimeout(() => {
+            greeting.classList.remove("show");
+            greeting.classList.add("hide");
+        }, 4300);
+
+        /* Настройте категории и файлы тут */
+        const categories = {
+            "защитная PPF антигравийная прозрачная глянцевая пленка": "Прозрачная глянцевая пленка",
+            "защитная PPF антигравийная прозрачная матовая пленка": "Прозрачная матовая пленка",
+            "защитная PPF цветная пленка": "Цветная пленка",
+            "защитная виниловая цветная пленка": "Виниловая цветная пленка",
+            "Тонировочная пленка": "Тонировочная пленка",
+            "Прочие товары": "Другие товары"
+        };
+
+        const categoryImages = {
+            "защитная PPF антигравийная прозрачная глянцевая пленка": "https://sunmaxfilms.ru/images/okleyka_mercedes1.png",
+            "защитная PPF антигравийная прозрачная матовая пленка": "https://sunmaxfilms.ru/images/okleyka_bmw_x6.png",
+            "защитная PPF цветная пленка": "https://sunmaxfilms.ru/images/2026/02/25/photo_2026-02-25_20-39-10_small.jpg",
+            "защитная виниловая цветная пленка": "https://sunmaxfilms.ru/images/2025/12/15/photo_2025-12-15_21-12-38_small.jpg",
+            "Тонировочная пленка": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6jnrOFGW_SFdeJG--yxWfc0b3Xk0KnlqvgA&s",
+            "Прочие товары": "https://avatars.mds.yandex.net/get-altay/14885978/2a00000195f23852e83f3756f2e6fa4935ec/XXXL"
+        };
+
+        const categoryContainer = document.getElementById("category-container");
+        const productContainer = document.getElementById("product-container");
+        const backBtn = document.getElementById("backBtn");
+        const toast = document.getElementById("toast");
+
+        // Логика Lightbox
+        const lightbox = document.getElementById("lightbox");
+        const lightboxImg = document.getElementById("lightboxImg");
+        const lightboxClose = document.getElementById("lightboxClose");
+        const lbPrev = document.getElementById("lbPrev");
+        const lbNext = document.getElementById("lbNext");
+        const lightboxDots = document.getElementById("lightboxDots");
+
+        let lbImages = [];
+        let lbIndex = 0;
+
+        function openLightbox(images, startIndex = 0) {
+            lbImages = Array.isArray(images) ? images : [images];
+            lbIndex = startIndex;
+            renderLightbox();
+            lightbox.classList.add("show");
+        }
+
+        function renderLightbox() {
+            lightboxImg.style.opacity = "0";
+            setTimeout(() => {
+                lightboxImg.src = lbImages[lbIndex];
+                lightboxImg.style.opacity = "1";
+            }, 150);
+
+            if (isTouchDevice) {
+                lbPrev.style.display = "none";
+                lbNext.style.display = "none";
+            } else {
+                lbPrev.style.display = lbImages.length > 1 ? "flex" : "none";
+                lbNext.style.display = lbImages.length > 1 ? "flex" : "none";
+            }
+
+            lightboxDots.innerHTML = "";
+            if (lbImages.length > 1) {
+                lbImages.forEach((_, i) => {
+                    const dot = document.createElement("div");
+                    dot.className = "lightbox-dot" + (i === lbIndex ? " active" : "");
+                    dot.addEventListener("click", () => { lbIndex = i; renderLightbox(); });
+                    lightboxDots.appendChild(dot);
+                });
+            }
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove("show");
+            setTimeout(() => { lightboxImg.src = ""; }, 300);
+        }
+
+        lbPrev.addEventListener("click", (e) => {
+            e.stopPropagation();
+            lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length;
+            renderLightbox();
+        });
+
+        lbNext.addEventListener("click", (e) => {
+            e.stopPropagation();
+            lbIndex = (lbIndex + 1) % lbImages.length;
+            renderLightbox();
+        });
+
+        let lbTouchStartX = 0;
+        lightbox.addEventListener("touchstart", (e) => { lbTouchStartX = e.touches[0].clientX; }, { passive: true });
+        lightbox.addEventListener("touchend", (e) => {
+            const diff = lbTouchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50 && lbImages.length > 1) {
+                lbIndex = diff > 0
+                    ? (lbIndex + 1) % lbImages.length
+                    : (lbIndex - 1 + lbImages.length) % lbImages.length;
+                renderLightbox();
+            }
+        }, { passive: true });
+
+        document.addEventListener("keydown", (e) => {
+            if (!lightbox.classList.contains("show")) return;
+            if (e.key === "ArrowRight") { lbIndex = (lbIndex + 1) % lbImages.length; renderLightbox(); }
+            if (e.key === "ArrowLeft") { lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length; renderLightbox(); }
+            if (e.key === "Escape") closeLightbox();
+        });
+
+        lightboxClose.addEventListener("click", closeLightbox);
+        lightbox.addEventListener("click", (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 1400);
+        }
+
+        const filters = document.getElementById("filters");
+        const sortSelect = document.getElementById("sort");
+        const minPrice = document.getElementById("minPrice");
+        const maxPrice = document.getElementById("maxPrice");
+
+        let allProducts = [];
+
+        /* ===== ДАННЫЕ ОПИСАНИЙ КАТЕГОРИЙ ===== */
+        const categoryDescriptions = {
+            "защитная PPF антигравийная прозрачная глянцевая пленка": {
+                short: "Максимальная защита с глянцевым эффектом",
+                full: `Глянцевый полиуретан Sunmax дарит кузову зеркальный блеск и премиальную защиту PPF. Вы получаете эффектный вид и надежный барьер от сколов, царапин, химии и УФ-лучей — всё в одном покрытии. Это надежная инвестиция в сохранение идеального состояния и высокой перепродажной стоимости вашего автомобиля.`,
+                features: ["Ослепительный блеск", "Надежная защита", "Долговечность"]
+            },
+            "защитная PPF антигравийная прозрачная матовая пленка": {
+                short: "Премиальный матовый вид + защита",
+                full: "Матовый полиуретан Sunmax сочетает в себе премиальную эстетику и бронирующие свойства PPF. Вы получаете глубокую матовую текстуру и надежный щит от сколов, царапин и химии — в одном слое. Это идеальный способ подчеркнуть индивидуальность автомобиля, сохранив заводскую краску в безупречном состоянии.",
+                features: ["Матовый soft-touch эффект", "Уникальная эстетика", "Надежная защита"]
+            },
+            "защитная PPF цветная пленка": {
+                short: "Смена цвета со встроенной защитой",
+                full: "Цветной полиуретан Sunmax объединяет смелый дизайн и свойства надежной бронезащиты. Вы получаете радикальную смену имиджа и барьер от сколов, химии и УФ-лучей — в одном слое. Это идеальное решение «два в одном»: премиальное преображение автомобиля без малейшего риска для заводской краски.",
+                features: ["Любой цвет за 1 день", "Защита инвестиций", "Хром и металлик", "Долговечность и стойкость"]
+            },
+            "защитная виниловая цветная пленка": {
+                short: "Широкая палитра для смены цвета",
+                full: "Виниловая пленка Sunmax — это бюджетное и стильное решение для преображения кузова. Вы получаете доступ к 84 оттенкам и качественному полимеру с усиленным клеевым слоем Henkel в каждом рулоне. Воспользуйтесь фильтром на сайте, чтобы подобрать цвет и увидеть реальные примеры оклейки на вашей модели автомобиля.",
+                features: ["Матовые, глянцевые, хром", "Не повреждает лак", "Легко снимается", "Доступная цена"]
+            },
+            "Тонировочная пленка": {
+                short: "Комфорт, приватность и защита салона",
+                full: "Профессиональная тонировочная плёнка для боковых, задних и лобового стёкол. Снижает нагрев салона, блокирует вредное UV-излучение и обеспечивает приватность. Различные уровни светопропускания: от лёгкого затемнения до максимальной тонировки. Сертифицированная продукция, соответствующая требованиям ПДД.",
+                features: ["Блокировка UV до 99%", "Снижение нагрева салона", "Разные уровни тонировки", "Соответствие ПДД"]
+            },
+            "Прочие товары": {
+                short: "Футболки толстовки и т.д",
+                full: "Брендированная продукция и аксессуары Sunmax объединяют стиль и полезные инструменты в одном разделе. Вы найдете здесь фирменный мерч (футболки, кепки) и профессиональный инвентарь: ракели, вывески и кеги. Всё необходимое для работы и продвижения бренда — качественные аксессуары как для мастеров, так и для фанатов марки.",
+                features: [
+                            "Фирменный стиль и мерч Sunmax",
+                            "Профессиональный рабочий инвентарь",
+                            "Атрибутика для оформления студии"
+                            ]
+            }
+        };
+
+        Object.entries(categories).forEach(([file, title], index) => {
+            const card = document.createElement("div");
+            card.className = "category-card";
+            const imgSrc = categoryImages[file] || 'https://via.placeholder.com/500x300/2a2a2a/ffffff?text=SUNMAX';
+            const descData = categoryDescriptions[file];
+            const shortDesc = descData ? descData.short : "";
+
+            card.innerHTML = `
+                <img src="${imgSrc}" alt="${title}">
+                <h3>${title}</h3>
+                ${shortDesc ? `<p class="category-tagline">${shortDesc}</p>` : ""}
+                ${descData ? `<button class="category-info-btn" aria-label="Подробнее о категории">
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M10 9v5M10 7v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </button>` : ""}
+            `;
+
+            if (descData) {
+                const infoBtn = card.querySelector(".category-info-btn");
+                infoBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openCategoryModal(title, descData);
+                });
+            }
+
+            card.addEventListener("click", () => loadCategory(file));
+            categoryContainer.appendChild(card);
+            setTimeout(() => card.classList.add("show"), index * 100);
+        });
+
+        async function loadCategory(fileName) {
+            categoryContainer.style.display = "none";
+            backBtn.style.display = "inline-block";
+            productContainer.style.display = "grid";
+            productContainer.innerHTML = "";
+            filters.style.display = "flex";
+
+            try {
+                const response = await fetch(`products/${fileName}.json`);
+                if (!response.ok) throw new Error("Файл не найден");
+                const data = await response.json();
+                allProducts = Object.values(data);
+                applyFilters();
+            } catch (err) {
+                productContainer.innerHTML = `<p class="error-msg">Ошибка загрузки каталога. Проверьте файл: products/${fileName}.json</p>`;
+            }
+        }
+
+        function applyFilters() {
+            let products = [...allProducts];
+
+            const min = +minPrice.value || 0;
+            const max = +maxPrice.value || Infinity;
+            const sort = sortSelect.value;
+
+            products = products.filter(p => {
+                const price = getPrice(p);
+                return price >= min && price <= max;
+            });
+
+            if (sort === "price-asc") {
+                products.sort((a, b) => getPrice(a) - getPrice(b));
+            }
+            if (sort === "price-desc") {
+                products.sort((a, b) => getPrice(b) - getPrice(a));
+            }
+            if (sort === "name-asc") {
+                products.sort((a, b) => (a["Пленка"] || "").localeCompare(b["Пленка"] || ""));
+            }
+            if (sort === "name-desc") {
+                products.sort((a, b) => (b["Пленка"] || "").localeCompare(a["Пленка"] || ""));
+            }
+
+            renderProducts(products);
+        }
+
+        function getPrice(p) {
+            const price = p["Цена рулон"] !== undefined ? p["Цена рулон"] : p["Цена"];
+            return parseInt(String(price).replace(/\D/g, "")) || 0;
+        }
+
+        function getAvailabilityHTML(status) {
+            if (!status || status === null) return '';
+
+            let className = 'status-available';
+            let icon = '●';
+            const text = status.toLowerCase();
+
+            if (text.includes('нет')) {
+                className = 'status-out';
+                icon = '○';
+            } else if (text.includes('скоро') || text.includes('шт')) {
+                className = 'status-low';
+                icon = '⚠';
+            }
+
+            return `<div class="availability-badge ${className}"><span>${icon}</span> ${status}</div>`;
+        }
+
+        function buildGalleryHTML(photos) {
+            const multi = photos.length > 1;
+            const slides = photos.map(src => `
+                <div class="card-gallery-slide">
+                    <img src="${src}" alt="" class="zoomable-image">
+                </div>`).join("");
+
+            const MAX_DOTS = 4;
+            const dotsCount = Math.min(photos.length, MAX_DOTS);
+            const dots = multi ? `
+                <div class="gallery-dots">
+                    ${Array.from({length: dotsCount}, (_, i) => `<div class="gallery-dot${i === 0 ? ' active' : ''}"></div>`).join("")}
+                </div>` : "";
+
+            const navBtns = multi ? `
+                <button class="gallery-nav prev">&#8249;</button>
+                <button class="gallery-nav next">&#8250;</button>` : "";
+
+            return `
+                <div class="card-gallery">
+                    <div class="card-gallery-track">${slides}</div>
+                    ${navBtns}
+                    ${dots}
+                </div>`;
+        }
+
+        function attachGalleryHandlers(card, photos) {
+            const gallery = card.querySelector(".card-gallery");
+            if (!gallery) return;
+            const track = gallery.querySelector(".card-gallery-track");
+            const dots = gallery.querySelectorAll(".gallery-dot");
+            const btnPrev = gallery.querySelector(".gallery-nav.prev");
+            const btnNext = gallery.querySelector(".gallery-nav.next");
+
+            if (isTouchDevice) {
+                if (btnPrev) btnPrev.style.display = "none";
+                if (btnNext) btnNext.style.display = "none";
+            }
+
+            const MAX_DOTS = 4;
+            let current = 0;
+
+            function updateDots() {
+                if (!dots.length) return;
+                const total = photos.length;
+                if (total <= MAX_DOTS) {
+                    dots.forEach((d, i) => d.classList.toggle("active", i === current));
+                } else {
+                    const activeDot = Math.round((current / (total - 1)) * (MAX_DOTS - 1));
+                    dots.forEach((d, i) => d.classList.toggle("active", i === activeDot));
+                }
+            }
+
+            function goTo(idx) {
+                current = (idx + photos.length) % photos.length;
+                track.style.transform = `translateX(-${current * 100}%)`;
+                updateDots();
+            }
+
+            updateDots();
+
+            if (btnPrev) btnPrev.addEventListener("click", (e) => { e.stopPropagation(); goTo(current - 1); });
+            if (btnNext) btnNext.addEventListener("click", (e) => { e.stopPropagation(); goTo(current + 1); });
+            dots.forEach((dot, i) => dot.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const total = photos.length;
+                if (total <= MAX_DOTS) {
+                    goTo(i);
+                } else {
+                    goTo(Math.round((i / (MAX_DOTS - 1)) * (total - 1)));
+                }
+            }));
+
+            let touchStartX = 0;
+            gallery.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+            gallery.addEventListener("touchend", (e) => {
+                const diff = touchStartX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+            }, { passive: true });
+
+            gallery.querySelectorAll(".zoomable-image").forEach((img, i) => {
+                img.addEventListener("click", () => openLightbox(photos, i));
+            });
+        }
+
+        function renderProducts(products) {
+            productContainer.innerHTML = "";
+
+            if (products.length === 0) {
+                productContainer.innerHTML = `<p class="error-msg">По вашему запросу ничего не найдено.</p>`;
+                return;
+            }
+
+            products.forEach((p, index) => {
+                if (!p["Пленка"]) return;
+
+                const card = document.createElement("div");
+                card.className = "product-card";
+
+                const isTop = p["Пленка"].toLowerCase().includes('elite') ||
+                    p["Пленка"].toLowerCase().includes('pro') ||
+                    p["Пленка"].toLowerCase().includes('diamond');
+
+                const badgeHtml = isTop ? `<div class="badge">Premium</div>` : '';
+                const availabilityHtml = getAvailabilityHTML(p["Статус"]);
+                
+                const descText = p["Описание"] || "Подробное описание для этого товара пока отсутствует.";
+                
+                const descIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+
+                const isOtherCategory = p["Цена рулон"] === undefined && p["Цена"] !== undefined;
+
+                if (isOtherCategory) {
+                    const rawPhoto = p["Фото"] || "";
+                    const photos = rawPhoto.split("|").map(s => s.trim()).filter(Boolean);
+                    const photoList = photos.length > 0 ? photos : ["img/Пусто.png"];
+
+                    // ИСХОДНЫЙ ВИД для Прочих товаров (сохранен стиль марджинов)
+                    const frontHTML = `
+                        ${badgeHtml}
+                        ${availabilityHtml} 
+                        ${buildGalleryHTML(photoList)}
+                        
+                        <div class="product-name" style="min-height: auto; margin-bottom: 10px;">${p["Пленка"]}</div>
+                        
+                        <button type="button" class="btn-desc">${descIcon} Читать описание</button>
+                        
+                        <div class="spec-row" style="margin-top: auto; border-bottom: none; align-items: center; padding-top: 10px;">
+                            <span class="spec-label" style="color: #fff; font-size: 1rem;">Цена:</span>
+                            <span class="spec-value" style="font-size: 1.4rem; color: #fff;">${p["Цена"]} ₽</span>
+                        </div>
+
+                        <div class="buttons-container" style="padding-top: 10px;">
+                            <button type="button" class="add-to-cart-btn btn-roll" id="btn-add-other">Добавить в корзину</button>
+                        </div>
+                    `;
+
+                    card.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-front">
+                                ${frontHTML}
+                            </div>
+                            <div class="card-back">
+                                <h3 style="margin-top:0; margin-bottom: 15px; color:#fff; font-size: 1.2rem; text-align: center;">Описание товара</h3>
+                                <div class="desc-content" style="color: #bbb; font-size: 0.95rem; line-height: 1.5; flex-grow: 1; overflow-y: auto; padding-right: 5px;">
+                                    ${descText}
+                                </div>
+                                <button type="button" class="back-flip-btn">Вернуться назад</button>
+                            </div>
+                        </div>
+                    `;
+
+                    productContainer.appendChild(card);
+                    setTimeout(() => card.classList.add("show"), index * 60);
+
+                    attachGalleryHandlers(card, photoList);
+
+                    const btnAdd = card.querySelector("#btn-add-other");
+
+                    // Блокировка кнопки если товар не в наличии
+                    const statusTextOther = (p["Статус"] || "").toLowerCase();
+                    if (statusTextOther.includes('нет')) {
+                        btnAdd.disabled = true;
+                        btnAdd.classList.add('out-of-stock');
+                        btnAdd.textContent = 'Нет в наличии';
+                    }
+
+                    btnAdd.addEventListener("click", async (e) => {
+                        if (btnAdd.disabled) return;
+                        e.preventDefault();
+                        const userId = tg.initDataUnsafe?.user?.id || 833401749;
+                        const payload = {
+                            userid: userId,
+                            name: p["Пленка"],
+                            thickness: "—",
+                            urethane: "—",
+                            topcoat: "—",
+                            glue: "—",
+                            price: p["Цена"],
+                            description: p["Описание тг"] || "—",
+                            count_product: 1
+                        };
+
+                        try {
+                            const r = await fetch("http://127.0.0.1:8000/add_to_cart", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(payload)
+                            });
+
+                            const data = await r.json();
+                            if (data.status === "added") {
+                                showToast('Товар добавлен в корзину 🛒');
+                            } else if (data.status === "exists") {
+                                showToast('Этот товар уже в корзине ⚠️');
+                            } else {
+                                showToast("Не удалось добавить товар ❌");
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            showToast("Ошибка соединения с сервером 🚫");
+                        }
+                    });
+
+                } else {
+                    const hasMeterPrice = p["Цена метр"] !== null && p["Цена метр"] !== undefined && p["Цена метр"] !== "";
+
+                    const rawPhoto = p["Фото"] || "";
+                    const photos = rawPhoto.split("|").map(s => s.trim()).filter(Boolean);
+                    const photoList = photos.length > 0 ? photos : ["img/Пусто.png"];
+
+                    const meterPriceRow = hasMeterPrice ? `
+                        <div class="spec-row" style="margin-top: 15px; border-bottom: none; align-items: center;">
+                            <span class="spec-label" style="color: #fff;">Метр:</span>
+                            <span class="spec-value" style="font-size: 1.1rem; color: #fff;">${p["Цена метр"]} ₽</span>
+                        </div>` : '';
+
+                    const meterButtonHtml = hasMeterPrice ? `
+                        <button type="button" class="add-to-cart-btn btn-meter">Добавить метр в корзину</button>` : '';
+
+                    // ИСХОДНЫЙ ВИД (Восстановлены точные inline-стили для блока цен)
+                    const frontHTML = `
+                        ${badgeHtml}
+                        ${availabilityHtml} 
+                        
+                        <div class="product-name" style="min-height: auto; margin-bottom: 10px;">${p["Пленка"]}</div>
+                        
+                        <button type="button" class="btn-desc">${descIcon} Читать описание</button>
+                        
+                        <div class="spec-row" style="margin-top: auto;">
+                            <span class="spec-label">Толщина:</span>
+                            <span class="spec-value">${p["Толщина"] || '—'}</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-label">Уретан:</span>
+                            <span class="spec-value">${p["Уретан"] || '—'}</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-label">Топкоут:</span>
+                            <span class="spec-value">${p["Топкоут"] || '—'}</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-label">Клей:</span>
+                            <span class="spec-value" style="font-size:0.8rem">${p["Клей"] || '—'}</span>
+                        </div>
+                        
+                        ${meterPriceRow}
+
+                        <div class="spec-row" style="border-bottom: none; align-items: center; ${!hasMeterPrice ? 'margin-top: 15px;' : ''}">
+                            <span class="spec-label" style="color: #fff;">Рулон:</span>
+                            <span class="spec-value" style="font-size: 1.3rem;">${p["Цена рулон"]} ₽</span>
+                        </div>
+
+                        <div class="buttons-container">
+                            <button type="button" class="add-to-cart-btn btn-roll">Добавить рулон в корзину</button>
+                            ${meterButtonHtml}
+                        </div>
+                    `;
+
+                    card.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-front">
+                                ${frontHTML}
+                            </div>
+                            <div class="card-back">
+                                <h3 style="margin-top:0; margin-bottom: 15px; color:#fff; font-size: 1.2rem; text-align: center;">Описание товара</h3>
+                                <div class="desc-content" style="color: #bbb; font-size: 0.95rem; line-height: 1.5; flex-grow: 1; overflow-y: auto; padding-right: 5px;">
+                                    ${descText}
+                                </div>
+                                <button type="button" class="back-flip-btn">Вернуться назад</button>
+                            </div>
+                        </div>
+                    `;
+
+                    productContainer.appendChild(card);
+                    setTimeout(() => card.classList.add("show"), index * 60);
+
+                    attachGalleryHandlers(card, photoList);
+
+                    const addToCart = async (isRoll, chosenColor) => {
+                        const userId = tg.initDataUnsafe?.user?.id || 833401749;
+                        const price = isRoll ? p["Цена рулон"] : p["Цена метр"];
+                        const typeLabel = isRoll ? "(Рулон)" : "(Метр)";
+                        const colorSuffix = chosenColor ? ` — #${chosenColor.id} ${chosenColor.name}` : "";
+
+                        const payload = {
+                            userid: userId,
+                            name: `${p["Пленка"]} ${typeLabel}${colorSuffix}`,
+                            thickness: p["Толщина"] || "—",
+                            urethane: p["Уретан"] || "—",
+                            topcoat: p["Топкоут"] || "—",
+                            glue: p["Клей"] || "—",
+                            price: price,
+                            description: p["Описание тг"] || "—",
+                            count_product: 1
+                        };
+
+                        try {
+                            const r = await fetch("http://127.0.0.1:8000/add_to_cart", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(payload)
+                            });
+
+                            const data = await r.json();
+
+                            if (data.status === "added") {
+                                showToast(`${isRoll ? 'Рулон добавлен' : 'Метр добавлен'} в корзину 🛒`);
+                            } else if (data.status === "exists") {
+                                showToast(`Этот товар уже в корзине ⚠️`);
+                            } else {
+                                showToast("Не удалось добавить товар ❌");
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            showToast("Ошибка соединения с сервером 🚫");
+                        }
+                    };
+
+                    const btnRoll = card.querySelector(".btn-roll");
+                    const btnMeter = card.querySelector(".btn-meter");
+
+                    // Блокировка кнопок если товар не в наличии
+                    const statusText = (p["Статус"] || "").toLowerCase();
+                    if (statusText.includes('нет')) {
+                        if (btnRoll) {
+                            btnRoll.disabled = true;
+                            btnRoll.classList.add('out-of-stock');
+                            btnRoll.textContent = 'Нет в наличии';
+                        }
+                        if (btnMeter) {
+                            btnMeter.disabled = true;
+                            btnMeter.classList.add('out-of-stock');
+                            btnMeter.textContent = 'Нет в наличии';
+                        }
+                    }
+
+                    btnRoll.addEventListener("click", (e) => {
+                        if (btnRoll.disabled) return;
+                        e.preventDefault();
+                        const colorInfo = getColorListForFilm(p["Пленка"]);
+                        if (colorInfo) {
+                            openColorModal(colorInfo.label, colorInfo.list, colorInfo.sections, colorInfo.sectionNames, colorInfo.sectionOrder, colorInfo.stockMap, (color) => addToCart(true, color));
+                        } else {
+                            addToCart(true, null);
+                        }
+                    });
+
+                    if (btnMeter) {
+                        btnMeter.addEventListener("click", (e) => {
+                            if (btnMeter.disabled) return;
+                            e.preventDefault();
+                            const colorInfo = getColorListForFilm(p["Пленка"]);
+                            if (colorInfo) {
+                                openColorModal(colorInfo.label, colorInfo.list, colorInfo.sections, colorInfo.sectionNames, colorInfo.sectionOrder, colorInfo.stockMap, (color) => addToCart(false, color));
+                            } else {
+                                addToCart(false, null);
+                            }
+                        });
+                    }
+                }
+
+                // Логика переворота карточек
+                const btnDesc = card.querySelector('.btn-desc');
+                const btnBackFlip = card.querySelector('.back-flip-btn');
+                
+                if (btnDesc) {
+                    btnDesc.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        card.classList.add('flipped');
+                    });
+                }
+                
+                if (btnBackFlip) {
+                    btnBackFlip.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        card.classList.remove('flipped');
+                    });
+                }
+            });
+        }
+
+        sortSelect.onchange = applyFilters;
+        minPrice.oninput = applyFilters;
+        maxPrice.oninput = applyFilters;
+
+        /* ===== ДАННЫЕ ЦВЕТОВ PPF (с finish-типами) ===== */
+        const PPF_COLORS = [
+          /* Gloss */
+          {id:1,  name:"Ferrari Red Gloss",        hex:"#fc0404", finish:"gloss"},
+          {id:5,  name:"Cadmium Green Gloss",      hex:"#597463", finish:"gloss"},
+          {id:6,  name:"Lotus Orange",             hex:"#f08205", finish:"gloss"},
+          {id:7,  name:"Maple Yellow Gloss",       hex:"#d4a800", finish:"gloss"},
+          {id:8,  name:"Crystal Lemon Gloss",      hex:"#d3d007", finish:"gloss"},
+          {id:9,  name:"Urban Green Gloss",        hex:"#47411d", finish:"gloss"},
+          {id:10, name:"Lime Gray",                hex:"#597463", finish:"gloss"},
+          {id:11, name:"Sky Blue Gloss",           hex:"#32bce1", finish:"gloss"},
+          {id:12, name:"Tiffany Gloss",            hex:"#90efd9", finish:"gloss"},
+          {id:13, name:"Volcano Gray Gloss",       hex:"#c9cbca", finish:"gloss"},
+          {id:14, name:"Sublime Gloss",            hex:"#8c98b2", finish:"gloss"},
+          {id:15, name:"Brooklyn Grey Gloss",      hex:"#555361", finish:"gloss"},
+          {id:16, name:"Nardo Gray Gloss",         hex:"#555361", finish:"gloss"},
+          {id:32, name:"Purple Haze Gloss",        hex:"#1a0406", finish:"gloss"},
+          {id:34, name:"Carbon Black",             hex:"#0a0a0a", finish:"gloss"},
+          {id:38, name:"Black Gloss",              hex:"#03060d", finish:"gloss"},
+          {id:39, name:"Verde Mantis",             hex:"#60b630", finish:"gloss"},
+          {id:41, name:"Porsche Green",            hex:"#b8dba9", finish:"gloss"},
+          {id:42, name:"Pink Glossy",              hex:"#e42772", finish:"gloss"},
+          {id:44, name:"Metal Gray",               hex:"#818083", finish:"gloss"},
+          {id:46, name:"Porsche Urban",            hex:"#99995f", finish:"gloss"},
+          {id:47, name:"Bentley Pink",             hex:"#bea2b9", finish:"gloss"},
+          {id:48, name:"Metal Red",                hex:"#d40f2b", finish:"gloss"},
+          {id:49, name:"BMW Green",                hex:"#00735b", finish:"gloss"},
+          {id:50, name:"Orange",                   hex:"#f08205", finish:"gloss"},
+          {id:51, name:"Jaguar Black Rose",        hex:"#290313", finish:"gloss"},
+          {id:52, name:"Metal Crimson",            hex:"#761730", finish:"gloss"},
+          {id:53, name:"Metal Blue",               hex:"#2252a3", finish:"gloss"},
+          {id:54, name:"Metal Gold",               hex:"#c6a40e", finish:"gloss"},
+          {id:55, name:"Tesla Forest Green",       hex:"#2f5345", finish:"gloss"},
+          {id:56, name:"GT Purple",                hex:"#0a061a", finish:"gloss"},
+          {id:57, name:"Phantom Lemon",            hex:"#accd06", finish:"gloss"},
+          {id:58, name:"Desert Yellow",            hex:"#8a7a30", finish:"gloss"},
+          {id:139,name:"Sonoma Green",             hex:"#799975", finish:"gloss"},
+          {id:140,name:"Galaxy Green",             hex:"#0a674f", finish:"gloss"},
+          {id:141,name:"Blue Metallic",            hex:"#32527b", finish:"gloss"},
+          {id:142,name:"Black Cherry",             hex:"#83041e", finish:"gloss"},
+          {id:143,name:"Liquid Cherry Red",        hex:"#CC252C", finish:"gloss"},
+          {id:144,name:"Liquid Dragon Red",        hex:"#9e0200", finish:"gloss"},
+          {id:145,name:"Black Rose",               hex:"#51232C", finish:"gloss"},
+          {id:146,name:"Speed Orange",             hex:"#db4f2f", finish:"gloss"},
+          {id:147,name:"ByronBay Blue",            hex:"#75B0C6", finish:"gloss"},
+          {id:148,name:"Selenite Grey",            hex:"#9f9999", finish:"gloss"},
+          /* Pearl */
+          {id:2,  name:"Shiny Green Pearl",        hex:"#4b6e74", finish:"pearl"},
+          {id:3,  name:"Dark Green Pearl",         hex:"#628c44", finish:"pearl"},
+          {id:4,  name:"Goodwood Green Pearl",     hex:"#01141a", finish:"pearl"},
+          {id:17, name:"Marina Blue Pearl",        hex:"#06358f", finish:"pearl"},
+          {id:18, name:"Black Red Pearl",          hex:"#644b60", finish:"pearl"},
+          {id:19, name:"Violet Pearl",             hex:"#9a0e7b", finish:"pearl"},
+          {id:20, name:"Purple Pearl",             hex:"#2a1f3f", finish:"pearl"},
+          {id:21, name:"Porsche Crystal Pearl",    hex:"#6b8aa9", finish:"pearl"},
+          {id:22, name:"Gray Pearl",               hex:"#687182", finish:"pearl"},
+          {id:23, name:"Silver Pearl",             hex:"#555361", finish:"pearl"},
+          {id:35, name:"White Gloss Pearl",        hex:"#e5eef5", finish:"pearl"},
+          {id:36, name:"White Matt Pearl",         hex:"#eff3f6", finish:"pearl"},
+          {id:138,name:"Pearl White",              hex:"#F8F6F0", finish:"pearl"},
+          /* Chrome */
+          {id:59, name:"Clear Carbon",             hex:"#cccccc", finish:"chrome"},
+          {id:60, name:"Silver Chrome",            hex:"#c0c0c0", finish:"chrome"},
+          {id:61, name:"Super Chrome Black",       hex:"#111111", finish:"chrome"},
+          {id:62, name:"Super Chrome Gold",        hex:"#d4af37", finish:"chrome"},
+          /* Matt */
+          {id:24, name:"Gray Matt",                hex:"#79787d", finish:"matt"},
+          {id:25, name:"Silver Matt",              hex:"#9a9c9b", finish:"matt"},
+          {id:26, name:"Black Matt",               hex:"#080405", finish:"matt"},
+          {id:27, name:"Shadow Blue Matt",         hex:"#0c3869", finish:"matt"},
+          {id:28, name:"Gold Matt",                hex:"#b58c18", finish:"matt"},
+          {id:29, name:"Green Purple",             hex:"#6062b7", finish:"matt"},
+          {id:30, name:"Green Blue",               hex:"#554a8c", finish:"matt"},
+          {id:31, name:"Mountain Green",           hex:"#263838", finish:"matt"},
+          {id:33, name:"Purple Haze Matt",         hex:"#516830", finish:"matt"},
+          {id:37, name:"Matte Black Charm Red",    hex:"#3a394a", finish:"matt"},
+          {id:40, name:"Khaki Green",              hex:"#5a5a2a", finish:"matt"},
+          {id:43, name:"Ashes",                    hex:"#d9d5c2", finish:"matt"},
+          {id:45, name:"Matte AMG Gray",           hex:"#d8d8da", finish:"matt"},
+          /* Metal */
+          {id:101,name:"Matt Metal White",         hex:"#FBFCF6", finish:"metal"},
+          {id:103,name:"Matt Metal Pearl White",   hex:"#eeebd9", finish:"metal"},
+          {id:104,name:"Matt Metal Capri Grey Purple",hex:"#392A48",finish:"metal"},
+          {id:105,name:"Matt Metal Racing Blue",   hex:"#04aeec", finish:"metal"},
+          {id:106,name:"Matt Blue Chrome",         hex:"#2c6fbb", finish:"metal"},
+          {id:107,name:"Matt Metal Shadow Blue",   hex:"#778ba5", finish:"metal"},
+          {id:108,name:"Matt Metal Black Blue",    hex:"#0d0c0b", finish:"metal"},
+          {id:109,name:"Matt Metal Shadow Brown",  hex:"#BB8D6F", finish:"metal"},
+          {id:110,name:"Matt Metal Night Purple",  hex:"#392A48", finish:"metal"},
+          {id:111,name:"Matt Metal Black Purple",  hex:"#35063e", finish:"metal"},
+          {id:112,name:"Matt Metal Romanee Red",   hex:"#B33F40", finish:"metal"},
+          {id:113,name:"Matt Metal Flame Red",     hex:"#A72920", finish:"metal"},
+          {id:114,name:"Matt Metal Covert Green",  hex:"#c8d5b9", finish:"metal"},
+          {id:115,name:"Matt Metal Blackish Green",hex:"#1A2421", finish:"metal"},
+          {id:116,name:"Matt Metal Olive Green",   hex:"#A8A65C", finish:"metal"},
+          {id:117,name:"Matt Metal Venom Green",   hex:"#728C00", finish:"metal"},
+          {id:118,name:"Matt Metal Army Green",    hex:"#4B5320", finish:"metal"},
+          {id:119,name:"Matt Metal Khaki Green",   hex:"#8A865D", finish:"metal"},
+          {id:120,name:"Matt Metal Bronze",        hex:"#B4945A", finish:"metal"},
+          {id:121,name:"Matt Metal Chartreuse",    hex:"#B1BC55", finish:"metal"},
+          {id:122,name:"Matt Metal Shadow Gold",   hex:"#D2BF37", finish:"metal"},
+          {id:123,name:"Matt Metal Gold Brown",    hex:"#BB8D6F", finish:"metal"},
+          {id:124,name:"Matt Metal Rose Gold",     hex:"#CBA3B2", finish:"metal"},
+          {id:125,name:"Matt Metal Desert Yellow", hex:"#a29259", finish:"metal"},
+          {id:126,name:"Matt Metal Blue With Gold",hex:"#548696", finish:"metal"},
+          {id:127,name:"Matt Metal Racing Yellow", hex:"#F8CD02", finish:"metal"},
+          {id:128,name:"Matt Metal Tungsten Steel",hex:"#b5ac9f", finish:"metal"},
+          {id:129,name:"Matt Metal Titanium Grey", hex:"#545b62", finish:"metal"},
+          {id:130,name:"Matt Metal Space Grey",    hex:"#65737e", finish:"metal"},
+          {id:131,name:"Matt Metal AMG Grey",      hex:"#A8A9AD", finish:"metal"},
+          {id:132,name:"Matt Metal Deep Grey",     hex:"#677986", finish:"metal"},
+          {id:133,name:"Matt Metal Gun Grey",      hex:"#818589", finish:"metal"},
+          {id:134,name:"Matt Metal Knight Gray",   hex:"#808f95", finish:"metal"},
+          {id:135,name:"Matt Metal Extreme Black", hex:"#060505", finish:"metal"},
+          {id:136,name:"Matt Metal Ceramic Black", hex:"#423a3a", finish:"metal"},
+          {id:137,name:"Matt Metal Black",         hex:"#000000", finish:"metal"},
+          /* PPF */
+          {id:102,name:"TPU Matt White",           hex:"#FDFBF9", finish:"ppf"},
+          {id:149,name:"Tungsten Steel PPF",       hex:"#b5ac9f", finish:"ppf"},
+          {id:150,name:"Liquid Gun Grey PPF",      hex:"#818589", finish:"ppf"},
+          {id:151,name:"Chocolate PPF",            hex:"#713600", finish:"ppf"},
+        ];
+
+        /* ===== ДАННЫЕ ЦВЕТОВ VINYL ===== */
+        const VINYL_COLORS = [
+          {id:"N001",name:"Gloss Black",               hex:"#0a0a0a", finish:"vgloss"},
+          {id:"N002",name:"Gloss Piano White",          hex:"#f5f5f5", finish:"vgloss"},
+          {id:"N003",name:"Glossy Ferrari Red",         hex:"#cc0000", finish:"vgloss"},
+          {id:"N004",name:"Gloss Coral Orange",         hex:"#e85d26", finish:"vgloss"},
+          {id:"N005",name:"Gloss Rouge Pink",           hex:"#c0306e", finish:"vgloss"},
+          {id:"N006",name:"Gloss Lemon Yellow",         hex:"#f5e642", finish:"vgloss"},
+          {id:"N007",name:"Gloss Gold Yellow",          hex:"#d4a017", finish:"vgloss"},
+          {id:"N008",name:"Gloss Mclaren Orange",       hex:"#f47a26", finish:"vgloss"},
+          {id:"N009",name:"Gloss Lava Orange",          hex:"#d94f00", finish:"vgloss"},
+          {id:"N010",name:"Gloss Porsche Dolphin Grey", hex:"#8a8c8e", finish:"vgloss"},
+          {id:"N011",name:"Gloss Porsche Chalk Grey",   hex:"#b8b5ae", finish:"vgloss"},
+          {id:"N012",name:"Gloss Nardo Grey",           hex:"#8f8f8f", finish:"vgloss"},
+          {id:"N013",name:"Gloss BMW Brooklyn Grey",    hex:"#6e6e72", finish:"vgloss"},
+          {id:"N014",name:"Gloss Combat Grey",          hex:"#6a6a72", finish:"vgloss"},
+          {id:"N015",name:"Gloss Cement Grey",          hex:"#a0a09a", finish:"vgloss"},
+          {id:"N016",name:"Gloss Nardo Grey II",        hex:"#959595", finish:"vgloss"},
+          {id:"N017",name:"Gloss Storm Grey",           hex:"#7a7e82", finish:"vgloss"},
+          {id:"N018",name:"Gloss Sapphire Blue",        hex:"#0f3a72", finish:"vgloss"},
+          {id:"N019",name:"Gloss Sky Blue",             hex:"#4aacd4", finish:"vgloss"},
+          {id:"N020",name:"Gloss Ice Blue",             hex:"#aad4e8", finish:"vgloss"},
+          {id:"N021",name:"Gloss Tiffany",              hex:"#81d8d0", finish:"vgloss"},
+          {id:"N022",name:"Gloss Avocado Green",        hex:"#568203", finish:"vgloss"},
+          {id:"N023",name:"Gloss Tanager Turquoise",    hex:"#00b09c", finish:"vgloss"},
+          {id:"N024",name:"Gloss Apple Green",          hex:"#8db600", finish:"vgloss"},
+          {id:"N025",name:"Gloss Viper Green",          hex:"#1a7a00", finish:"vgloss"},
+          {id:"N026",name:"Gloss Porsche Moss Green",   hex:"#3d6b35", finish:"vgloss"},
+          {id:"N027",name:"Gloss Porsche Auratium Green",hex:"#4a7c3f",finish:"vgloss"},
+          {id:"N028",name:"Gloss Audi Hell Green",      hex:"#6b8e23", finish:"vgloss"},
+          {id:"N029",name:"Gloss Dark Mohsen Green",    hex:"#2d4a1e", finish:"vgloss"},
+          {id:"N030",name:"Glossy Khaki Green",         hex:"#5e5a2a", finish:"vgloss"},
+          {id:"N031",name:"Gloss Combat Green",         hex:"#4a5240", finish:"vgloss"},
+          {id:"N032",name:"Gloss Pepper White",         hex:"#ebebeb", finish:"vgloss"},
+          {id:"N033",name:"Gloss Benz AMG Sand Beige",  hex:"#c8b89a", finish:"vgloss"},
+          {id:"N034",name:"Gloss Caramel Brown",        hex:"#8b5e3c", finish:"vgloss"},
+          {id:"N035",name:"Gloss Audi Battle Green",    hex:"#3b5030", finish:"vgloss"},
+          {id:"N036",name:"Gloss Military Green",       hex:"#4b5320", finish:"vgloss"},
+          {id:"N037",name:"Matt Smoky Gray",            hex:"#6e6e6e", finish:"vmatt"},
+          {id:"N038",name:"Matt Smoky Black",           hex:"#1a1a1a", finish:"vmatt"},
+          {id:"N039",name:"Matt Super Black",           hex:"#080808", finish:"vmatt"},
+          {id:"N040",name:"Frosted Black",              hex:"#111111", finish:"vmatt"},
+          {id:"N041",name:"6D Gloss Carbon",            hex:"#1a1a1a", finish:"vcarbon"},
+          {id:"N042",name:"Matte Metallic Black",       hex:"#1c1c1e", finish:"vmetal"},
+          {id:"N043",name:"Matte Metallic White",       hex:"#e8e8e8", finish:"vmetal"},
+          {id:"N044",name:"Matte Metallic Silver",      hex:"#a8a9ad", finish:"vmetal"},
+          {id:"N045",name:"Matte Metallic Black Green", hex:"#1a2a1e", finish:"vmetal"},
+          {id:"N046",name:"Matte Metallic Midnight Blue",hex:"#0d1b3e",finish:"vmetal"},
+          {id:"N047",name:"Matte Metallic Russet Red",  hex:"#8b2500", finish:"vmetal"},
+          {id:"N048",name:"Matte Metallic Yellow",      hex:"#d4a800", finish:"vmetal"},
+          {id:"N049",name:"Matte Metallic Gunmetal Grey",hex:"#3d3d3d",finish:"vmetal"},
+          {id:"N050",name:"Matte Metallic Charcoal Grey",hex:"#4a4a4a",finish:"vmetal"},
+          {id:"N051",name:"Matte Metallic Graphite Grey",hex:"#565656",finish:"vmetal"},
+          {id:"N052",name:"Matte Metallic Gray",        hex:"#6e6e6e", finish:"vmetal"},
+          {id:"N053",name:"Matte Metallic Brown",       hex:"#5c3a1e", finish:"vmetal"},
+          {id:"N054",name:"Gloss Diamond Black",        hex:"#0d0d0d", finish:"vdiamond"},
+          {id:"N055",name:"Gloss Diamond White",        hex:"#f0f0f2", finish:"vdiamond"},
+          {id:"N056",name:"Fantasy Moonstone Grey",     hex:"#8a9098", finish:"vfantasy"},
+          {id:"N057",name:"Fantasy Grey Red",           hex:"#7a6060", finish:"vfantasy"},
+          {id:"N058",name:"Fantasy Grey Purple",        hex:"#6a6078", finish:"vfantasy"},
+          {id:"N059",name:"Coral Apple Green",          hex:"#8db600", finish:"vcoral"},
+          {id:"N060",name:"Coral Yellow Green",         hex:"#b5cc00", finish:"vcoral"},
+          {id:"N061",name:"Coral Goldsands Orange",     hex:"#d4820a", finish:"vcoral"},
+          {id:"N062",name:"Gloss Metallic White",       hex:"#e8e8e8", finish:"vmetal"},
+          {id:"N063",name:"Gloss Metallic Mamba Green", hex:"#1a4a1e", finish:"vmetal"},
+          {id:"N064",name:"Gloss Metallic Sonoma Green",hex:"#5c7a50", finish:"vmetal"},
+          {id:"N065",name:"Gloss Metallic Emerald Green",hex:"#006b3c",finish:"vmetal"},
+          {id:"N066",name:"Gloss Metallic Black Green", hex:"#0a1e0d", finish:"vmetal"},
+          {id:"N067",name:"Gloss Metallic Royal Blue",  hex:"#002366", finish:"vmetal"},
+          {id:"N068",name:"Gloss Metallic Blueberry",   hex:"#2e1a6e", finish:"vmetal"},
+          {id:"N069",name:"Gloss Metallic Galaxy Blue",  hex:"#0d1b3e", finish:"vmetal"},
+          {id:"N070",name:"Gloss Metallic Soul Red",    hex:"#9b0a1a", finish:"vmetal"},
+          {id:"N071",name:"Gloss Metallic Lava Orange", hex:"#c04000", finish:"vmetal"},
+          {id:"N072",name:"Gloss Metallic Purple",      hex:"#4b0082", finish:"vmetal"},
+          {id:"N073",name:"Gloss Metallic Burgundy",    hex:"#6d0f1a", finish:"vmetal"},
+          {id:"N074",name:"Ghost Metallic Shadow Gold", hex:"#a08050", finish:"vghost"},
+          {id:"N075",name:"Ghost Metallic Black Green", hex:"#1a2a1a", finish:"vghost"},
+          {id:"N076",name:"Ghost Metallic Midnight Green",hex:"#0d2010",finish:"vghost"},
+          {id:"N077",name:"Ghost Metallic Dark Blue",   hex:"#0d1a30", finish:"vghost"},
+          {id:"N078",name:"Satin Midnight Purple",      hex:"#2d1250", finish:"vsatin"},
+          {id:"N079",name:"Forget Carbon Glossy Black", hex:"#1a1a1a", finish:"vcarbon"},
+          {id:"N080",name:"Forget Carbon Glossy Red",   hex:"#8b0000", finish:"vcarbon"},
+          {id:"N081",name:"PET Satin Chrome Black",     hex:"#1a1a1a", finish:"vchr"},
+          {id:"N082",name:"PET Satin Chrome Blue",      hex:"#1a2a5e", finish:"vchr"},
+          {id:"N083",name:"PET Satin Chrome Romanee Red",hex:"#7a1a1a",finish:"vchr"},
+          {id:"N084",name:"Splendid Midnight Purple",   hex:"#1a0a3a", finish:"vsatin"},
+        ];
+
+        /* Секции для PPF */
+        const PPF_SECTIONS = [
+          {key:"all",   label:"Все"},
+          {key:"gloss", label:"✨ Gloss"},
+          {key:"pearl", label:"🔮 Pearl"},
+          {key:"chrome",label:"🪞 Chrome"},
+          {key:"matt",  label:"🔲 Matt"},
+          {key:"metal", label:"🔩 Metal"},
+          {key:"ppf",   label:"🛡 PPF"},
+        ];
+        const PPF_SECTION_NAMES = {
+          gloss:"✨ Gloss — Глянец", pearl:"🔮 Pearl — Перламутр",
+          chrome:"🪞 Chrome — Хром", matt:"🔲 Matt — Матовый",
+          metal:"🔩 Matt Metal — Металлик", ppf:"🛡️ PPF — Прозрачная",
+        };
+        const PPF_SECTION_ORDER = ["gloss","pearl","chrome","matt","metal","ppf"];
+
+        /* Секции для Vinyl */
+        const VINYL_SECTIONS = [
+          {key:"all",      label:"Все"},
+          {key:"vgloss",   label:"✨ Gloss"},
+          {key:"vmatt",    label:"🔲 Matt"},
+          {key:"vmetal",   label:"🔩 Metallic"},
+          {key:"vsatin",   label:"🫧 Satin"},
+          {key:"vghost",   label:"👻 Ghost"},
+          {key:"vfantasy", label:"🌈 Fantasy"},
+          {key:"vcoral",   label:"🪸 Coral"},
+          {key:"vdiamond", label:"💎 Diamond"},
+          {key:"vcarbon",  label:"🕷 Carbon"},
+          {key:"vchr",     label:"🪞 Chrome"},
+        ];
+        const VINYL_SECTION_NAMES = {
+          vgloss:"✨ Gloss — Глянец", vmatt:"🔲 Matt — Матовый",
+          vmetal:"🔩 Metallic — Металлик", vsatin:"🫧 Satin — Сатин",
+          vghost:"👻 Ghost — Хамелеон", vfantasy:"🌈 Fantasy — Фэнтези",
+          vcoral:"🪸 Coral — Кораллы", vdiamond:"💎 Diamond — Бриллиант",
+          vcarbon:"🕷️ Carbon — Карбон", vchr:"🪞 PET Chrome — Хром",
+        };
+        const VINYL_SECTION_ORDER = ["vgloss","vmatt","vmetal","vsatin","vghost","vfantasy","vcoral","vdiamond","vcarbon","vchr"];
+
+        /* ===== ЛОГИКА ЦВЕТОВОГО МОДАЛА ===== */
+        const colorModalOverlay = document.getElementById("colorModalOverlay");
+        const colorModalTitle   = document.getElementById("colorModalTitle");
+        const colorModalSubtitle= document.getElementById("colorModalSubtitle");
+        const colorModalClose   = document.getElementById("colorModalClose");
+        const colorSearch       = document.getElementById("colorSearch");
+        const cmTabs            = document.getElementById("cmTabs");
+        const cmScroll          = document.getElementById("cmScroll");
+        const colorModalConfirm = document.getElementById("colorModalConfirm");
+        const cmConfirmPreview  = document.getElementById("cmConfirmPreview");
+        const cmConfirmNum      = document.getElementById("cmConfirmNum");
+        const cmConfirmName     = document.getElementById("cmConfirmName");
+
+        let _colorModalCallback = null;
+        let _colorList = [];
+        let _colorSections = [];
+        let _colorSectionNames = {};
+        let _colorSectionOrder = [];
+        let _selectedColor = null;
+        let _activeTab = "all";
+        let _searchQ = "";
+
+        function cmIsLight(hex) {
+            const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+            return (0.299*r + 0.587*g + 0.114*b) > 155;
+        }
+
+        /* ===================================================
+           ОСТАТКИ — загружаются fetch из JSON-файлов
+           Формат JSON: [{"Количество":"X шт","Название":"#1 Name..."}]
+           Для виниловой: [{"Количество":"X шт","Название":"N001 Name..."}]
+           =================================================== */
+        let STOCK_PPF   = {};   /* id(число) → qty(число) */
+        let STOCK_VINYL = {};
+
+        function parseStockArray(arr) {
+            const map = {};
+            (arr || []).forEach(item => {
+                const m = String(item["Название"] || "").match(/[#Nn]0*(\d+)/);
+                if (!m) return;
+                const id  = parseInt(m[1], 10);
+                const qty = parseInt(String(item["Количество"] || "0").replace(/\D/g, ""), 10) || 0;
+                map[id] = qty;
+            });
+            return map;
+        }
+
+        async function loadStockFiles() {
+            try {
+                const r = await fetch("ostatok_colorPPF.json");
+                if (r.ok) STOCK_PPF = parseStockArray(await r.json());
+            } catch(e) { console.warn("ostatok_colorPPF.json не найден", e); }
+
+            try {
+                const r = await fetch("ostatok_colorVINIL.json");
+                if (r.ok) STOCK_VINYL = parseStockArray(await r.json());
+            } catch(e) { console.warn("ostatok_colorVINIL.json не найден", e); }
+        }
+
+        loadStockFiles();   /* запускаем сразу при старте страницы */
+
+        /* Текущая карта остатков для открытого модала */
+        let _stockMap = {};
+
+        function getStockInfo(colorId) {
+            const numId = typeof colorId === "string"
+                ? parseInt(String(colorId).replace(/[Nn]/g, ""), 10)
+                : colorId;
+            if (!(numId in _stockMap)) return { cls: "unknown", text: "—" };
+            const qty = _stockMap[numId];
+            if (qty === 0)  return { cls: "low",  text: "Нет" };
+            if (qty <= 4)   return { cls: "low",  text: `${qty} шт` };
+            if (qty <= 9)   return { cls: "mid",  text: `${qty} шт` };
+            return               { cls: "high", text: `${qty}+ шт` };
+        }
+
+        function openColorModal(filmName, colors, sections, sectionNames, sectionOrder, stockMap, onConfirm) {
+            _colorList = colors;
+            _colorSections = sections;
+            _colorSectionNames = sectionNames;
+            _colorSectionOrder = sectionOrder;
+            _stockMap = stockMap || {};
+            _selectedColor = null;
+            _colorModalCallback = onConfirm;
+            _activeTab = "all";
+            _searchQ = "";
+
+            colorModalTitle.textContent = filmName;
+            colorModalSubtitle.textContent = `${colors.length} цветов на выбор`;
+            colorSearch.value = "";
+            cmConfirmPreview.style.background = "#1e1e1e";
+            cmConfirmPreview.style.borderColor = "rgba(255,255,255,0.1)";
+            cmConfirmNum.textContent = "";
+            cmConfirmName.textContent = "Цвет не выбран";
+            cmConfirmName.classList.add("placeholder");
+            colorModalConfirm.disabled = true;
+
+            buildCmTabs();
+            renderCmGrid();
+            colorModalOverlay.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeColorModal() {
+            colorModalOverlay.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        function buildCmTabs() {
+            cmTabs.innerHTML = "";
+            _colorSections.forEach(s => {
+                const btn = document.createElement("button");
+                btn.className = "cm-tab" + (s.key === _activeTab ? " active" : "");
+                btn.textContent = s.label;
+                btn.addEventListener("click", () => {
+                    _activeTab = s.key;
+                    cmTabs.querySelectorAll(".cm-tab").forEach(t => t.classList.remove("active"));
+                    btn.classList.add("active");
+                    renderCmGrid();
+                    cmScroll.scrollTop = 0;
+                });
+                cmTabs.appendChild(btn);
+            });
+        }
+
+        function getCmFiltered() {
+            return _colorList.filter(c => {
+                const mf = _activeTab === "all" || c.finish === _activeTab;
+                const q = _searchQ.trim().toLowerCase();
+                const ms = !q || c.name.toLowerCase().includes(q) || String(c.id).toLowerCase().includes(q);
+                return mf && ms;
+            });
+        }
+
+        function cmAttachMouseTracking(card, swatch, finish) {
+            const trackFinishes = ['gloss','pearl','chrome','metal','vgloss','vmetal','vchr','vghost','vfantasy','vdiamond'];
+            if (!trackFinishes.includes(finish)) return;
+            const cfg = {
+                gloss:{s:70,a:0.38}, pearl:{s:90,a:0.22}, chrome:{s:110,a:0.50}, metal:{s:80,a:0.18},
+                vgloss:{s:70,a:0.35}, vmetal:{s:80,a:0.20}, vchr:{s:110,a:0.50},
+                vghost:{s:90,a:0.25}, vfantasy:{s:100,a:0.28}, vdiamond:{s:100,a:0.45},
+            };
+            const {s,a} = cfg[finish] || {s:70,a:0.3};
+            const hl = document.createElement("div");
+            hl.className = "cm-swatch-hl"; hl.style.opacity = "0";
+            swatch.appendChild(hl);
+            let rafId = null;
+            card.addEventListener("mouseenter", () => { hl.style.opacity = "1"; });
+            card.addEventListener("mouseleave", () => { hl.style.opacity = "0"; cancelAnimationFrame(rafId); });
+            card.addEventListener("mousemove", e => {
+                cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(() => {
+                    const rect = swatch.getBoundingClientRect();
+                    const x = ((e.clientX-rect.left)/rect.width*100).toFixed(1);
+                    const y = ((e.clientY-rect.top)/rect.height*100).toFixed(1);
+                    hl.style.background = `radial-gradient(circle ${s}% at ${x}% ${y}%, rgba(255,255,255,${a}) 0%, transparent 70%)`;
+                });
+            });
+        }
+
+        function makeCmCard(c, index) {
+            const card = document.createElement("div");
+            card.className = "cm-card";
+            card.dataset.finish = c.finish;
+            if (_selectedColor && _selectedColor.id === c.id) card.classList.add("selected");
+
+            const light = cmIsLight(c.hex);
+            const badgeStyle = light
+                ? "background:rgba(0,0,0,0.18);color:rgba(0,0,0,0.65)"
+                : "background:rgba(0,0,0,0.50);color:rgba(255,255,255,0.80)";
+
+            const finishLabels = {
+                gloss:"Gloss", pearl:"Pearl", chrome:"Chrome", matt:"Matt", metal:"Metal", ppf:"PPF",
+                vgloss:"Gloss", vmatt:"Matt", vmetal:"Metallic", vchr:"Chrome",
+                vsatin:"Satin", vghost:"Ghost", vfantasy:"Fantasy", vcoral:"Coral",
+                vdiamond:"Diamond", vcarbon:"Carbon",
+            };
+
+            const stock = getStockInfo(c.id);
+
+            card.innerHTML = `
+                <div class="cm-swatch" style="background:${c.hex}">
+                    <div class="cm-check">
+                        <svg viewBox="0 0 14 14"><polyline points="2,7 6,11 12,3"/></svg>
+                    </div>
+                    <span class="cm-finish-badge" style="${badgeStyle}">${finishLabels[c.finish] || c.finish}</span>
+                </div>
+                <div class="cm-label">
+                    <div class="cm-label-num">${c.id}</div>
+                    
+                    <div class="cm-label-name">${c.name}</div>
+                    <div class="cm-stock ${stock.cls}">
+                        <div class="cm-stock-dot"></div>${stock.text}
+                    </div>
+                </div>
+            `;
+
+            const swatch = card.querySelector(".cm-swatch");
+            cmAttachMouseTracking(card, swatch, c.finish);
+
+            setTimeout(() => card.classList.add("visible"), Math.min(index * 15, 400));
+
+            card.addEventListener("click", () => {
+                document.querySelectorAll(".cm-card.selected").forEach(el => el.classList.remove("selected"));
+                if (_selectedColor && _selectedColor.id === c.id) {
+                    _selectedColor = null;
+                    cmConfirmPreview.style.background = "#1e1e1e";
+                    cmConfirmPreview.style.borderColor = "rgba(255,255,255,0.1)";
+                    cmConfirmNum.textContent = "";
+                    cmConfirmName.textContent = "Цвет не выбран";
+                    cmConfirmName.classList.add("placeholder");
+                    colorModalConfirm.disabled = true;
+                    return;
+                }
+                _selectedColor = c;
+                card.classList.add("selected");
+                cmConfirmPreview.style.background = c.hex;
+                cmConfirmPreview.style.borderColor = cmIsLight(c.hex) ? "#aaa" : c.hex;
+                cmConfirmNum.textContent = `${c.id} · ${finishLabels[c.finish] || c.finish} · ${stock.text}`;
+                cmConfirmName.textContent = c.name;
+                cmConfirmName.classList.remove("placeholder");
+                colorModalConfirm.disabled = false;
+                card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            });
+
+            return card;
+        }
+
+        function renderCmGrid() {
+            cmScroll.innerHTML = "";
+            const filtered = getCmFiltered();
+            if (!filtered.length) {
+                cmScroll.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#444;font-size:0.9rem;">Ничего не найдено</div>`;
+                return;
+            }
+
+            if (_activeTab === "all") {
+                _colorSectionOrder.forEach(fin => {
+                    const group = filtered.filter(c => c.finish === fin);
+                    if (!group.length) return;
+                    const label = document.createElement("div");
+                    label.className = "cm-section-label";
+                    label.textContent = _colorSectionNames[fin] || fin;
+                    cmScroll.appendChild(label);
+                    const grid = document.createElement("div");
+                    grid.className = "cm-grid";
+                    group.forEach((c, i) => grid.appendChild(makeCmCard(c, i)));
+                    cmScroll.appendChild(grid);
+                });
+            } else {
+                const grid = document.createElement("div");
+                grid.className = "cm-grid";
+                filtered.forEach((c, i) => grid.appendChild(makeCmCard(c, i)));
+                cmScroll.appendChild(grid);
+            }
+        }
+
+        colorSearch.addEventListener("input", () => {
+            _searchQ = colorSearch.value;
+            renderCmGrid();
+            cmScroll.scrollTop = 0;
+        });
+
+        colorModalClose.addEventListener("click", closeColorModal);
+        colorModalOverlay.addEventListener("click", (e) => {
+            if (e.target === colorModalOverlay) closeColorModal();
+        });
+
+        colorModalConfirm.addEventListener("click", () => {
+            if (_selectedColor && _colorModalCallback) {
+                _colorModalCallback(_selectedColor);
+                closeColorModal();
+            }
+        });
+
+        /* ===== ОПРЕДЕЛЕНИЕ ЦВЕТОВ ПО НАЗВАНИЮ ПЛЁНКИ ===== */
+        function getColorListForFilm(filmName) {
+            if (!filmName) return null;
+            const lower = filmName.toLowerCase();
+
+            /* ----- VINYL ----- */
+            if (lower.includes("vinyl") || lower.includes("винил")) {
+                // Парсим диапазон N1–N84 из названия: "Sunmax Vinyl N1-N40" -> 1..40
+                const rangeMatch = filmName.match(/[Nn](\d+)[-–—]?[Nn]?(\d+)?/);
+                let vinylColors = VINYL_COLORS;
+                let rangeLabel = "";
+                if (rangeMatch) {
+                    const from = parseInt(rangeMatch[1]);
+                    const to   = rangeMatch[2] ? parseInt(rangeMatch[2]) : from;
+                    vinylColors = VINYL_COLORS.filter(c => {
+                        const num = parseInt(String(c.id).replace(/[Nn]/,""));
+                        return num >= from && num <= to;
+                    });
+                    rangeLabel = ` (N${String(from).padStart(3,"0")}–N${String(to).padStart(3,"0")})`;
+                }
+                // Определяем секции на основе реальных finish в отфильтрованном списке
+                const usedFinishes = new Set(vinylColors.map(c => c.finish));
+                const filteredSections = VINYL_SECTIONS.filter(s => s.key === "all" || usedFinishes.has(s.key));
+                const filteredSectionOrder = VINYL_SECTION_ORDER.filter(k => usedFinishes.has(k));
+                return {
+                    list: vinylColors,
+                    label: filmName + rangeLabel,
+                    sections: filteredSections,
+                    sectionNames: VINYL_SECTION_NAMES,
+                    sectionOrder: filteredSectionOrder,
+                    stockMap: STOCK_VINYL,
+                };
+            }
+
+            /* ----- PPF COLOR ----- */
+            if (lower.includes("elite") || lower.includes("элит") ||
+                lower.includes("color ppf") || lower.includes("цветная ppf") ||
+                lower.includes("colour ppf") || lower.includes("color elite")) {
+                const usedFinishes = new Set(PPF_COLORS.map(c => c.finish));
+                return {
+                    list: PPF_COLORS,
+                    label: filmName,
+                    sections: PPF_SECTIONS.filter(s => s.key === "all" || usedFinishes.has(s.key)),
+                    sectionNames: PPF_SECTION_NAMES,
+                    sectionOrder: PPF_SECTION_ORDER,
+                    stockMap: STOCK_PPF,
+                };
+            }
+
+            return null;
+        }
+
+
+        /* ===== МОДАЛ КАТЕГОРИЙ ===== */
+        const catModalOverlay = document.getElementById("catModalOverlay");
+        const catModalClose   = document.getElementById("catModalClose");
+        const catModalTitle   = document.getElementById("catModalTitle");
+        const catModalDesc    = document.getElementById("catModalDesc");
+        const catModalFeatures= document.getElementById("catModalFeatures");
+        const catModalCta     = document.getElementById("catModalCta");
+
+        let _catFile = null;
+
+        function openCategoryModal(title, data) {
+            catModalTitle.textContent = title;
+            catModalDesc.textContent = data.full;
+
+            // Features
+            catModalFeatures.innerHTML = (data.features || [])
+                .map(f => `<div class="cat-modal-feature">${f}</div>`)
+                .join("");
+
+            // Store file key for CTA
+            _catFile = Object.entries(categories).find(([,t]) => t === title)?.[0] || null;
+
+            catModalOverlay.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeCategoryModal() {
+            catModalOverlay.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        catModalClose.addEventListener("click", closeCategoryModal);
+        catModalOverlay.addEventListener("click", (e) => {
+            if (e.target === catModalOverlay) closeCategoryModal();
+        });
+
+        catModalCta.addEventListener("click", () => {
+            closeCategoryModal();
+            if (_catFile) loadCategory(_catFile);
+        });
+
+        // Swipe down to close on touch
+        let _catSwipeY = 0;
+        const catModal = document.getElementById("catModal");
+        catModal.addEventListener("touchstart", (e) => { _catSwipeY = e.touches[0].clientY; }, { passive: true });
+        catModal.addEventListener("touchend", (e) => {
+            if (e.changedTouches[0].clientY - _catSwipeY > 80) closeCategoryModal();
+        }, { passive: true });
+
+        backBtn.addEventListener("click", () => {
+            productContainer.style.display = "none";
+            backBtn.style.display = "none";
+            filters.style.display = "none";
+            categoryContainer.style.display = "grid";
+            productContainer.innerHTML = "";
+
+            sortSelect.value = "";
+            minPrice.value = "";
+            maxPrice.value = "";
+
+            categoryContainer.querySelectorAll(".category-card").forEach((card, index) => {
+                card.classList.remove("show");
+                setTimeout(() => card.classList.add("show"), index * 50);
+            });
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    </script>
+
+    <!-- ===== МОДАЛ ОПИСАНИЯ КАТЕГОРИИ ===== -->
+    <div id="catModalOverlay" class="cat-modal-overlay">
+        <div class="cat-modal" id="catModal">
+            <div class="cat-modal-handle"></div>
+            <button class="cat-modal-close" id="catModalClose">&times;</button>
+            <div class="cat-modal-body">
+                <div class="cat-modal-label">Категория</div>
+                <div class="cat-modal-title" id="catModalTitle"></div>
+                <div class="cat-modal-divider"></div>
+                <p class="cat-modal-desc" id="catModalDesc"></p>
+                <div class="cat-modal-features" id="catModalFeatures"></div>
+                <button class="cat-modal-cta" id="catModalCta">Смотреть товары →</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

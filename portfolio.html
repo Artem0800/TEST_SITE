@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUNMAX | Наши работы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #ff4081;
+            --accent-dim: rgba(255, 64, 129, 0.18);
+            --accent-glow: rgba(255, 64, 129, 0.45);
+            --bg: #1a1a1a;
+            --surface: #242424;
+            --surface2: #2e2e2e;
+            --border: rgba(255, 255, 255, 0.07);
+            --text: #f0f0f0;
+            --muted: #888;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ── NOISE TEXTURE OVERLAY ── */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        /* ── HERO HEADER ── */
+        .hero {
+            position: relative;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(175deg, #111 0%, #1a1a1a 100%);
+            padding: 60px 20px 50px;
+        }
+
+        /* Racing stripe accent */
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, var(--accent) 40%, #ff8a65 60%, transparent 100%);
+        }
+
+        /* Glow orbs */
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(255,64,129,0.07) 0%, transparent 70%);
+            top: -200px; left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .hero-eyebrow {
+            font-size: 0.75rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-eyebrow::before,
+        .hero-eyebrow::after {
+            content: "";
+            display: block;
+            width: 30px;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.6;
+        }
+
+        .hero-title {
+            font-family: "Bebas Neue", "Segoe UI", sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            letter-spacing: 8px;
+            color: #fff;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .hero-title span {
+            color: var(--accent);
+        }
+
+        .hero-sub {
+            font-size: 0.85rem;
+            color: var(--muted);
+            letter-spacing: 3px;
+            margin-top: 14px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        /* Stats row */
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 36px;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 2.2rem;
+            color: var(--accent);
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* Divider */
+        .hero-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin-top: 50px;
+        }
+
+        /* ── MAIN ── */
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 0 5vw 80px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ── GALLERY ── */
+        #gallery {
+            column-count: 4;
+            column-gap: 16px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* ── CARD ── */
+        .work-card {
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            break-inside: avoid;
+
+            opacity: 0;
+            transform: translateY(24px) scale(0.98);
+            transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                        opacity 0.45s ease,
+                        box-shadow 0.3s ease,
+                        border-color 0.3s ease;
+        }
+
+        .work-card.show {
+            opacity: 1;
+            transform: none;
+        }
+
+        .work-card img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), filter 0.4s ease;
+        }
+
+        .work-card.small img  { height: 190px; }
+        .work-card.medium img { height: 280px; }
+        .work-card.large img  { height: 370px; }
+
+        /* Overlay — subtle zoom hint */
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        /* Expand icon */
+        .card-expand {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.7);
+            transition: all 0.3s ease;
+        }
+
+        .card-expand svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+        }
+
+        .work-card:hover img {
+            transform: scale(1.07);
+            filter: brightness(0.75);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .work-card:hover {
+                border-color: rgba(255, 64, 129, 0.35);
+                box-shadow: 0 12px 35px rgba(255, 64, 129, 0.2), 0 0 0 1px rgba(255, 64, 129, 0.1);
+                transform: translateY(-4px) !important;
+            }
+        }
+
+        .work-card:hover .card-overlay {
+            opacity: 1;
+        }
+
+        .work-card:hover .card-expand {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .work-card:active {
+            transform: scale(0.97) !important;
+        }
+
+        /* ── LOADER ── */
+        #loader {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--muted);
+        }
+
+        .loader-ring {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            border: 2px solid rgba(255,64,129,0.15);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── PAGINATION ── */
+        .pagination-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 50px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-info {
+            font-size: 0.78rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        .page-info strong {
+            color: var(--text);
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.03);
+            padding: 8px 12px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .page-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--muted);
+            border-radius: 50%;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+            user-select: none;
+            line-height: 1;
+        }
+
+        .page-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            box-shadow: 0 0 14px var(--accent-glow);
+        }
+
+        .page-btn:hover:not(.active):not(:disabled) {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-color: rgba(255,64,129,0.3);
+        }
+
+        .page-btn.nav-btn {
+            font-size: 1.3rem;
+            color: var(--accent);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        .dots {
+            color: #444;
+            padding: 0 2px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+        }
+
+        /* ── LIGHTBOX ── */
+        #lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.96);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: zoom-out;
+        }
+
+        #lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .lb-inner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 95vw;
+            max-height: 95vh;
+        }
+
+        #lightbox-img {
+            max-width: min(88vw, 1100px);
+            max-height: 85vh;
+            border-radius: 10px;
+            display: block;
+            transform: scale(0.94);
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+            cursor: default;
+        }
+
+        #lightbox.active #lightbox-img {
+            transform: scale(1);
+        }
+
+        .lb-nav {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .lb-nav:hover {
+            background: rgba(255, 64, 129, 0.25);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .lb-close {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 10001;
+        }
+
+        .lb-close:hover {
+            background: rgba(255,64,129,0.3);
+            border-color: var(--accent);
+        }
+
+        .lb-counter {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 2px;
+            font-family: "Bebas Neue", sans-serif;
+            font-size: 1rem;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--muted);
+        }
+
+        .empty-state svg {
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1200px) {
+            #gallery { column-count: 3; }
+        }
+        @media (max-width: 768px) {
+            #gallery { column-count: 2; }
+            .lb-nav { display: none; }
+            .hero-stats { gap: 24px; }
+            .stat-number { font-size: 1.8rem; }
+            .filter-count { display: none; }
+        }
+        @media (max-width: 480px) {
+            #gallery { column-count: 2; column-gap: 10px; }
+            .work-card { margin-bottom: 10px; }
+            .work-card.large img { height: 250px; }
+            .pagination-wrap { justify-content: center; }
+            .page-info { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="hero-eyebrow">SUNMAX WRAP STUDIO</div>
+        <h1 class="hero-title">НАШИ <span>РАБОТЫ</span></h1>
+        <p class="hero-sub">КАЖДОЕ АВТО — ЭТО ИСТОРИЯ</p>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-number">1000+</div>
+                <div class="stat-label">Проектов</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">15</div>
+                <div class="stat-label">Лет опыта</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Гарантия</div>
+            </div>
+        </div>
+        <div class="hero-divider"></div>
+    </header>
+
+    <main>
+        <!-- GALLERY -->
+        <div id="loader">
+            <div class="loader-ring"></div>
+            <div style="font-size:0.85rem; letter-spacing:2px;">ЗАГРУЗКА ГАЛЕРЕИ...</div>
+        </div>
+        <div id="gallery"></div>
+
+        <!-- PAGINATION WRAPPER -->
+        <div class="pagination-wrap" id="pagination-wrap" style="display:none">
+            <span class="page-info" id="page-info"></span>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </main>
+
+    <!-- LIGHTBOX -->
+    <div id="lightbox" onclick="handleLbClick(event)">
+        <button class="lb-close" onclick="closeLightbox(); event.stopPropagation();">✕</button>
+        <div class="lb-inner" onclick="event.stopPropagation()">
+            <button class="lb-nav" id="lb-prev" onclick="lbNavigate(-1)">‹</button>
+            <img src="" id="lightbox-img" alt="Работа">
+            <button class="lb-nav" id="lb-next" onclick="lbNavigate(1)">›</button>
+        </div>
+        <div class="lb-counter" id="lb-counter"></div>
+    </div>
+
+    <script>
+        // ── DATA ──────────────────────────────────────
+        let allImages = [];
+        const ITEMS_PER_PAGE = 20;
+        let currentPage = 1;
+        let lbIndex = 0;
+
+        // ── DOM REFS ──────────────────────────────────
+        const gallery        = document.getElementById('gallery');
+        const pagination     = document.getElementById('pagination');
+        const paginationWrap = document.getElementById('pagination-wrap');
+        const loader         = document.getElementById('loader');
+        const pageInfo       = document.getElementById('page-info');
+
+        // ── INIT ──────────────────────────────────────
+        async function init() {
+            try {
+                const resp = await fetch('img_link.txt');
+                if (!resp.ok) throw new Error('Файл img_link.txt не найден');
+                const text = await resp.text();
+                allImages = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+                loader.style.display = 'none';
+                renderPage(1);
+            } catch (err) {
+                loader.innerHTML = `<div style="color:var(--accent); font-size:0.9rem;">${err.message}</div>`;
+            }
+        }
+
+        // ── RENDER PAGE ───────────────────────────────
+        function renderPage(page) {
+            currentPage = page;
+            gallery.style.opacity = '0';
+
+            setTimeout(() => {
+                gallery.innerHTML = '';
+
+                const start = (page - 1) * ITEMS_PER_PAGE;
+                const end   = start + ITEMS_PER_PAGE;
+                const items = allImages.slice(start, end);
+
+                if (items.length === 0) {
+                    gallery.innerHTML = `<div class="empty-state"><div style="font-size:1rem; color:var(--text)">Работы не найдены</div></div>`;
+                } else {
+                    const SIZES = ['small', 'medium', 'large'];
+                    items.forEach((url, idx) => {
+                        const globalIdx = start + idx;
+                        const size = SIZES[(globalIdx * 7 + globalIdx % 3) % SIZES.length];
+                        const card = document.createElement('div');
+                        card.className = 'work-card ' + size;
+                        card.innerHTML = `
+                            <img src="${url}" alt="Работа" loading="lazy">
+                            <div class="card-overlay"></div>
+                            <div class="card-expand">
+                                <svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                            </div>`;
+                        card.addEventListener('click', () => openLightbox(globalIdx));
+                        gallery.appendChild(card);
+                        requestAnimationFrame(() => {
+                            setTimeout(() => card.classList.add('show'), idx * 60);
+                        });
+                    });
+                }
+
+                gallery.style.opacity = '1';
+                renderPagination();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 280);
+        }
+
+        // ── PAGINATION ────────────────────────────────
+        function renderPagination() {
+            pagination.innerHTML = '';
+            const total = Math.ceil(allImages.length / ITEMS_PER_PAGE);
+
+            const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+            const end   = Math.min(currentPage * ITEMS_PER_PAGE, allImages.length);
+            pageInfo.innerHTML = `Показано <strong>${start}–${end}</strong> из <strong>${allImages.length}</strong>`;
+
+            if (total <= 1) {
+                paginationWrap.style.display = allImages.length > 0 ? 'flex' : 'none';
+                paginationWrap.querySelector('.pagination').style.display = 'none';
+                return;
+            }
+
+            paginationWrap.style.display = 'flex';
+            paginationWrap.querySelector('.pagination').style.display = 'flex';
+
+            pagination.appendChild(mkBtn('‹', currentPage > 1, () => renderPage(currentPage - 1), 'nav-btn'));
+
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    pagination.appendChild(mkBtn(i, true, () => renderPage(i), i === currentPage ? 'active' : ''));
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    const d = document.createElement('span');
+                    d.className = 'dots'; d.textContent = '…';
+                    pagination.appendChild(d);
+                }
+            }
+
+            pagination.appendChild(mkBtn('›', currentPage < total, () => renderPage(currentPage + 1), 'nav-btn'));
+        }
+
+        function mkBtn(text, enabled, onClick, cls = '') {
+            const b = document.createElement('button');
+            b.className = `page-btn ${cls}`;
+            b.textContent = text;
+            if (!enabled) b.disabled = true;
+            b.addEventListener('click', onClick);
+            return b;
+        }
+
+        // ── LIGHTBOX ──────────────────────────────────
+        function openLightbox(index) {
+            lbIndex = index;
+            const lb = document.getElementById('lightbox');
+            document.getElementById('lightbox-img').src = allImages[index];
+            updateLbCounter();
+            lb.style.display = 'flex';
+            requestAnimationFrame(() => lb.classList.add('active'));
+        }
+
+        function closeLightbox() {
+            const lb = document.getElementById('lightbox');
+            lb.classList.remove('active');
+            setTimeout(() => { lb.style.display = 'none'; }, 300);
+        }
+
+        function lbNavigate(dir) {
+            lbIndex = (lbIndex + dir + allImages.length) % allImages.length;
+            const img = document.getElementById('lightbox-img');
+            img.style.transform = `scale(0.9) translateX(${dir * 30}px)`;
+            img.style.opacity = '0';
+            setTimeout(() => {
+                img.src = allImages[lbIndex];
+                img.style.transform = 'scale(1)';
+                img.style.opacity = '1';
+                updateLbCounter();
+            }, 200);
+        }
+
+        function updateLbCounter() {
+            document.getElementById('lb-counter').textContent =
+                `${lbIndex + 1}  /  ${allImages.length}`;
+        }
+
+        function handleLbClick(e) {
+            if (e.target === document.getElementById('lightbox')) closeLightbox();
+        }
+
+        // Keyboard nav
+        document.addEventListener('keydown', e => {
+            const lb = document.getElementById('lightbox');
+            if (!lb.classList.contains('active')) return;
+            if (e.key === 'ArrowRight') lbNavigate(1);
+            if (e.key === 'ArrowLeft')  lbNavigate(-1);
+            if (e.key === 'Escape')     closeLightbox();
+        });
+
+        // Touch swipe for lightbox
+        let touchStartX = 0;
+        document.getElementById('lightbox').addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+        document.getElementById('lightbox').addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(dx) > 50) lbNavigate(dx < 0 ? 1 : -1);
+        }, { passive: true });
+
+        init();
+    </script>
+</body>
+</html>

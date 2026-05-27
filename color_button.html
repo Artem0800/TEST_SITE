@@ -1,0 +1,1308 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+<title>SUNMAX | Выбор цвета</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #1e1e1e;
+  color: #f0f0f0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== HEADER ===== */
+header {
+  text-align: center;
+  padding: 40px 20px 24px;
+  background: linear-gradient(to bottom, #111, #1e1e1e);
+}
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: #fff;
+}
+header p {
+  color: #888;
+  letter-spacing: 2px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+/* ===== SEARCH ===== */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0 20px 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+.search-wrap svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  pointer-events: none;
+}
+#searchInput {
+  width: 100%;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  color: #efefef;
+  padding: 11px 16px 11px 42px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#searchInput:focus {
+  border-color: #ff4081;
+  box-shadow: 0 0 0 3px rgba(255,64,129,0.15);
+}
+#searchInput::placeholder { color: #555; }
+
+/* ===== CATEGORY SWITCHER (главные 2 вкладки) ===== */
+.cat-switcher {
+  display: flex;
+  gap: 0;
+  padding: 0 20px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.cat-btn {
+  flex: 1;
+  position: relative;
+  padding: 14px 12px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s ease;
+  text-align: center;
+  line-height: 1.3;
+  overflow: hidden;
+}
+.cat-btn:first-child { border-radius: 14px 0 0 14px; }
+.cat-btn:last-child  { border-radius: 0 14px 14px 0; }
+
+/* ---- PPF (priority) ---- */
+.cat-btn.ppf-cat {
+  background: linear-gradient(135deg, #ff4081 0%, #c2185b 100%);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(255,64,129,0.4);
+  z-index: 2;
+}
+.cat-btn.ppf-cat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+/* star badge for priority */
+.cat-btn.ppf-cat .cat-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.cat-btn.ppf-cat .cat-title { font-size: 14px; letter-spacing: 0.5px; }
+.cat-btn.ppf-cat .cat-sub   { font-size: 10px; opacity: 0.8; margin-top: 2px; letter-spacing: 0.3px; }
+
+/* ---- VINYL ---- */
+.cat-btn.vinyl-cat {
+  background: #2a2a2a;
+  color: #aaa;
+  border: 1px solid #333;
+  border-left: none;
+}
+.cat-btn.vinyl-cat .cat-title { font-size: 14px; color: #ccc; }
+.cat-btn.vinyl-cat .cat-sub   { font-size: 10px; color: #555; margin-top: 2px; }
+
+/* active vinyl */
+.cat-btn.vinyl-cat.active {
+  background: #333;
+  color: #fff;
+  border-color: #555;
+}
+.cat-btn.vinyl-cat.active .cat-title { color: #fff; }
+.cat-btn.vinyl-cat.active .cat-sub   { color: #aaa; }
+
+/* inactive ppf */
+.cat-btn.ppf-cat.inactive {
+  background: #2a2a2a;
+  color: #888;
+  box-shadow: none;
+}
+.cat-btn.ppf-cat.inactive .cat-priority-badge { background: rgba(255,255,255,0.06); color: #666; }
+.cat-btn.ppf-cat.inactive .cat-title { color: #ccc; }
+.cat-btn.ppf-cat.inactive .cat-sub   { color: #555; }
+
+/* pulse animation on ppf badge when it's the default */
+@keyframes badgePulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,64,129,0); }
+  50%      { box-shadow: 0 0 0 4px rgba(255,64,129,0.25); }
+}
+.cat-btn.ppf-cat:not(.inactive) {
+  animation: badgePulse 3s ease infinite;
+}
+
+/* ===== SUB-FILTER TABS ===== */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 20px 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.filter-tabs::-webkit-scrollbar { display: none; }
+.tab {
+  background: #2a2a2a;
+  border: 1px solid #333;
+  color: #aaa;
+  padding: 7px 14px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.tab:hover { border-color: #555; color: #ddd; }
+.tab.active {
+  background: linear-gradient(90deg, #ff4081, #c2185b);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255,64,129,0.35);
+}
+
+/* ===== COUNT BAR ===== */
+.count-bar {
+  padding: 0 20px 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  color: #555;
+  font-size: 13px;
+}
+.count-bar span { color: #ff4081; font-weight: 700; }
+
+/* ===== SECTION HEADER ===== */
+.section-header {
+  padding: 16px 20px 10px;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-header h2 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #555;
+  white-space: nowrap;
+}
+.section-header::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #2a2a2a;
+}
+
+/* ===== COLOR GRID ===== */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 14px;
+  padding: 0 20px 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ===== COLOR CARD ===== */
+.color-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #2a2a2a;
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.25s ease;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  will-change: transform;
+}
+.color-card.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.3s ease, border-color 0.25s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .color-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+    border-color: rgba(255,64,129,0.35);
+    z-index: 2;
+  }
+}
+.color-card:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.1s !important;
+}
+
+/* ===== SWATCH ===== */
+.swatch {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.swatch-highlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  transition: opacity 0.3s ease;
+}
+
+/* GLOSS */
+.color-card[data-finish="gloss"] .swatch::after,
+.color-card[data-finish="vgloss"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg,
+    rgba(255,255,255,0.30) 0%,
+    rgba(255,255,255,0.10) 25%,
+    transparent 55%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+/* PEARL */
+.color-card[data-finish="pearl"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 20%,
+    rgba(180,220,255,0.18) 35%,
+    rgba(255,200,240,0.15) 50%,
+    rgba(200,255,220,0.12) 65%,
+    rgba(255,255,255,0.06) 80%,
+    transparent 100%
+  );
+  background-size: 300% 300%;
+  animation: pearlShift 5s ease infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes pearlShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+/* CHROME */
+.color-card[data-finish="chrome"] .swatch::before,
+.color-card[data-finish="vchr"] .swatch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    105deg,
+    rgba(255,255,255,0.0)  0px,
+    rgba(255,255,255,0.0)  20px,
+    rgba(255,255,255,0.18) 22px,
+    rgba(255,255,255,0.0)  24px,
+    rgba(255,255,255,0.0)  60px,
+    rgba(200,230,255,0.10) 62px,
+    rgba(255,255,255,0.0)  64px
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+.color-card[data-finish="chrome"] .swatch::after,
+.color-card[data-finish="vchr"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg,
+    transparent 0%,
+    rgba(255,255,255,0.0) 35%,
+    rgba(255,255,255,0.55) 50%,
+    rgba(255,255,255,0.0) 65%,
+    transparent 100%
+  );
+  background-size: 300% 100%;
+  animation: chromeSweep 3s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+@keyframes chromeSweep {
+  0%   { background-position: -100% 0; opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { background-position: 200% 0; opacity: 0; }
+}
+/* METAL */
+.color-card[data-finish="metal"] .swatch::before,
+.color-card[data-finish="vmetal"] .swatch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg,
+    transparent 0px, transparent 2px,
+    rgba(255,255,255,0.025) 2px,
+    rgba(255,255,255,0.025) 3px
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+.color-card[data-finish="metal"] .swatch::after,
+.color-card[data-finish="vmetal"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.08) 30%,
+    transparent 60%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+/* MATT */
+.color-card[data-finish="matt"] .swatch::after,
+.color-card[data-finish="vmatt"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, transparent 40%);
+  z-index: 2;
+  pointer-events: none;
+}
+/* PPF */
+.color-card[data-finish="ppf"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg,
+    rgba(255,255,255,0.12) 0%,
+    rgba(255,255,255,0.04) 40%,
+    transparent 70%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+/* SATIN (vinyl) */
+.color-card[data-finish="vsatin"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(155deg,
+    rgba(255,255,255,0.16) 0%,
+    rgba(255,255,255,0.05) 35%,
+    transparent 65%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+/* GHOST metallic (vinyl) — iridescent like pearl */
+.color-card[data-finish="vghost"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(130deg,
+    transparent 0%,
+    rgba(200,240,255,0.15) 25%,
+    rgba(255,200,255,0.15) 50%,
+    rgba(200,255,200,0.12) 75%,
+    transparent 100%
+  );
+  background-size: 300% 300%;
+  animation: pearlShift 4s ease infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+/* FANTASY (chameleon vinyl) */
+.color-card[data-finish="vfantasy"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,
+    rgba(255,100,150,0.18) 0%,
+    rgba(100,200,255,0.18) 33%,
+    rgba(100,255,150,0.18) 66%,
+    rgba(255,200,100,0.18) 100%
+  );
+  background-size: 300% 100%;
+  animation: fantasySweep 5s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes fantasySweep {
+  0%   { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+/* CORAL (vinyl) */
+.color-card[data-finish="vcoral"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg,
+    rgba(255,255,255,0.20) 0%,
+    rgba(255,255,255,0.06) 40%,
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+/* DIAMOND (vinyl) */
+.color-card[data-finish="vdiamond"] .swatch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg,
+    transparent 0px, transparent 4px,
+    rgba(255,255,255,0.06) 4px, rgba(255,255,255,0.06) 5px
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+.color-card[data-finish="vdiamond"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg,
+    transparent 0%,
+    rgba(255,255,255,0.0) 35%,
+    rgba(255,255,255,0.45) 50%,
+    rgba(255,255,255,0.0) 65%,
+    transparent 100%
+  );
+  background-size: 300% 100%;
+  animation: chromeSweep 4s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+/* CARBON (vinyl) */
+.color-card[data-finish="vcarbon"] .swatch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg,
+    rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 3px,
+    rgba(0,0,0,0.0) 3px, rgba(0,0,0,0.0) 6px
+  ),
+  repeating-linear-gradient(-45deg,
+    rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 3px,
+    rgba(0,0,0,0.0) 3px, rgba(0,0,0,0.0) 6px
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+.color-card[data-finish="vcarbon"] .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ===== FINISH BADGE ===== */
+.finish-badge {
+  position: absolute;
+  bottom: 7px;
+  right: 7px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgba(255,255,255,0.8);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  z-index: 5;
+}
+
+/* ===== CHECK ICON ===== */
+.check-icon {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 22px;
+  height: 22px;
+  background: #ff4081;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(255,64,129,0.6);
+  animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+.check-icon svg { width: 13px; height: 13px; stroke: #fff; stroke-width: 3; fill: none; }
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.color-card.selected .check-icon { display: flex; }
+
+/* ===== CARD LABEL ===== */
+.color-label {
+  padding: 9px 8px 10px;
+  text-align: center;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+.color-label .num {
+  font-size: 10px;
+  color: #555;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+.color-label .name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ccc;
+  line-height: 1.3;
+  word-break: break-word;
+  hyphens: auto;
+}
+.color-card.selected {
+  border-color: #ff4081;
+  box-shadow: 0 0 0 2px #ff4081, 0 12px 30px rgba(255,64,129,0.3);
+}
+.color-card.selected .color-label .name { color: #ff4081; }
+
+/* ===== EMPTY ===== */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: #444;
+}
+
+/* ===== CONFIRM BAR ===== */
+.confirm-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #161616;
+  border-top: 1px solid #2a2a2a;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 1000;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.34,1.2,0.64,1);
+}
+.confirm-bar.visible { transform: translateY(0); }
+
+.confirm-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  border: 2px solid #333;
+  transition: background 0.4s, border-color 0.3s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
+}
+.confirm-preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%);
+  pointer-events: none;
+}
+.confirm-info { flex: 1; min-width: 0; }
+.confirm-info .confirm-num { font-size: 11px; color: #666; font-weight: 700; letter-spacing: 1px; }
+.confirm-info .confirm-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.confirm-btn {
+  background: linear-gradient(90deg, #ff4081, #c2185b);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 13px 28px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(255,64,129,0.35);
+  transition: transform 0.2s, filter 0.2s;
+  flex-shrink: 0;
+}
+.confirm-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.confirm-btn:active { transform: scale(0.96); }
+
+.bottom-safe { height: 90px; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 90px; right: 20px;
+  background: #2a2a2a;
+  border: 1px solid rgba(255,64,129,0.3);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 480px) {
+  header h1 { font-size: 1.6rem; letter-spacing: 3px; }
+  .color-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; padding: 0 14px 30px; }
+  .toolbar, .filter-tabs, .count-bar, .cat-switcher { padding-left: 14px; padding-right: 14px; }
+  .cat-btn { padding: 12px 8px 10px; }
+}
+@media (min-width: 900px) {
+  .color-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SUNMAX</h1>
+  <p>ВЫБОР ЦВЕТА ПЛЕНКИ</p>
+</header>
+
+<!-- ===== SEARCH ===== -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="searchInput" type="text" placeholder="Поиск по названию или номеру…" autocomplete="off" />
+  </div>
+</div>
+
+<!-- ===== MAIN CATEGORY SWITCHER ===== -->
+<div class="cat-switcher">
+  <button class="cat-btn ppf-cat" id="catPPF" onclick="setCategory('ppf')">
+    <div class="cat-priority-badge">⭐ Рекомендуем</div>
+    <div class="cat-title">Защитная полиуретановая</div>
+    <div class="cat-sub">113 цвет</div>
+  </button>
+  <button class="cat-btn vinyl-cat" id="catVinyl" onclick="setCategory('vinyl')">
+    <div class="cat-title">Виниловая плёнка</div>
+    <div class="cat-sub">84 цвета</div>
+  </button>
+</div>
+
+<!-- ===== SUB-FILTER TABS ===== -->
+<div class="filter-tabs" id="filterTabs"></div>
+
+<!-- ===== COUNT BAR ===== -->
+<div class="count-bar">Показано: <span id="visibleCount">0</span> цветов</div>
+
+<!-- ===== GRID AREA ===== -->
+<div id="gridArea"></div>
+<div class="bottom-safe"></div>
+
+<!-- ===== CONFIRM BAR ===== -->
+<div class="confirm-bar" id="confirmBar">
+  <div class="confirm-preview" id="confirmPreview"></div>
+  <div class="confirm-info">
+    <div class="confirm-num" id="confirmNum"></div>
+    <div class="confirm-name" id="confirmName">Выберите цвет</div>
+  </div>
+  <button class="confirm-btn" id="confirmBtn">Выбрать →</button>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast">
+  <svg width="16" height="16" fill="none" stroke="#ff4081" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+/* ================================================================
+   ДАННЫЕ — PPF (полиуретановая, приоритет)
+   ================================================================ */
+const PPF_COLORS = [
+  /* Gloss */
+  {id:1,  name:"Ferrari Red Gloss",        hex:"#fc0404", finish:"gloss"},
+  {id:5,  name:"Cadmium Green Gloss",      hex:"#597463", finish:"gloss"},
+  {id:6,  name:"Lotus Orange",             hex:"#f08205", finish:"gloss"},
+  {id:7,  name:"Maple Yellow Gloss",       hex:"#d4a800", finish:"gloss"},
+  {id:8,  name:"Crystal Lemon Gloss",      hex:"#d3d007", finish:"gloss"},
+  {id:9,  name:"Urban Green Gloss",        hex:"#47411d", finish:"gloss"},
+  {id:10, name:"Lime Gray",                hex:"#597463", finish:"gloss"},
+  {id:11, name:"Sky Blue Gloss",           hex:"#32bce1", finish:"gloss"},
+  {id:12, name:"Tiffany Gloss",            hex:"#90efd9", finish:"gloss"},
+  {id:13, name:"Volcano Gray Gloss",       hex:"#c9cbca", finish:"gloss"},
+  {id:14, name:"Sublime Gloss",            hex:"#8c98b2", finish:"gloss"},
+  {id:15, name:"Brooklyn Grey Gloss",      hex:"#555361", finish:"gloss"},
+  {id:16, name:"Nardo Gray Gloss",         hex:"#555361", finish:"gloss"},
+  {id:32, name:"Purple Haze Gloss",        hex:"#1a0406", finish:"gloss"},
+  {id:34, name:"Carbon Black",             hex:"#0a0a0a", finish:"gloss"},
+  {id:38, name:"Black Gloss",              hex:"#03060d", finish:"gloss"},
+  {id:39, name:"Verde Mantis",             hex:"#60b630", finish:"gloss"},
+  {id:41, name:"Porsche Green",            hex:"#b8dba9", finish:"gloss"},
+  {id:42, name:"Pink Glossy",              hex:"#e42772", finish:"gloss"},
+  {id:44, name:"Metal Gray",               hex:"#818083", finish:"gloss"},
+  {id:46, name:"Porsche Urban",            hex:"#99995f", finish:"gloss"},
+  {id:47, name:"Bentley Pink",             hex:"#bea2b9", finish:"gloss"},
+  {id:48, name:"Metal Red",                hex:"#d40f2b", finish:"gloss"},
+  {id:49, name:"BMW Green",                hex:"#00735b", finish:"gloss"},
+  {id:50, name:"Orange",                   hex:"#f08205", finish:"gloss"},
+  {id:51, name:"Jaguar Black Rose",        hex:"#290313", finish:"gloss"},
+  {id:52, name:"Metal Crimson",            hex:"#761730", finish:"gloss"},
+  {id:53, name:"Metal Blue",               hex:"#2252a3", finish:"gloss"},
+  {id:54, name:"Metal Gold",               hex:"#c6a40e", finish:"gloss"},
+  {id:55, name:"Tesla Forest Green",       hex:"#2f5345", finish:"gloss"},
+  {id:56, name:"GT Purple",                hex:"#0a061a", finish:"gloss"},
+  {id:57, name:"Phantom Lemon",            hex:"#accd06", finish:"gloss"},
+  {id:58, name:"Desert Yellow",            hex:"#8a7a30", finish:"gloss"},
+  {id:139,name:"Sonoma Green",             hex:"#799975", finish:"gloss"},
+  {id:140,name:"Galaxy Green",             hex:"#0a674f", finish:"gloss"},
+  {id:141,name:"Blue Metallic",            hex:"#32527b", finish:"gloss"},
+  {id:142,name:"Black Cherry",             hex:"#83041e", finish:"gloss"},
+  {id:143,name:"Liquid Cherry Red",        hex:"#CC252C", finish:"gloss"},
+  {id:144,name:"Liquid Dragon Red",        hex:"#9e0200", finish:"gloss"},
+  {id:145,name:"Black Rose",               hex:"#51232C", finish:"gloss"},
+  {id:146,name:"Speed Orange",             hex:"#db4f2f", finish:"gloss"},
+  {id:147,name:"ByronBay Blue",            hex:"#75B0C6", finish:"gloss"},
+  {id:148,name:"Selenite Grey",            hex:"#9f9999", finish:"gloss"},
+  /* Pearl */
+  {id:2,  name:"Shiny Green Pearl",        hex:"#4b6e74", finish:"pearl"},
+  {id:3,  name:"Dark Green Pearl",         hex:"#628c44", finish:"pearl"},
+  {id:4,  name:"Goodwood Green Pearl",     hex:"#01141a", finish:"pearl"},
+  {id:17, name:"Marina Blue Pearl",        hex:"#06358f", finish:"pearl"},
+  {id:18, name:"Black Red Pearl",          hex:"#644b60", finish:"pearl"},
+  {id:19, name:"Violet Pearl",             hex:"#9a0e7b", finish:"pearl"},
+  {id:20, name:"Purple Pearl",             hex:"#2a1f3f", finish:"pearl"},
+  {id:21, name:"Porsche Crystal Pearl",    hex:"#6b8aa9", finish:"pearl"},
+  {id:22, name:"Gray Pearl",               hex:"#687182", finish:"pearl"},
+  {id:23, name:"Silver Pearl",             hex:"#555361", finish:"pearl"},
+  {id:35, name:"White Gloss Pearl",        hex:"#e5eef5", finish:"pearl"},
+  {id:36, name:"White Matt Pearl",         hex:"#eff3f6", finish:"pearl"},
+  {id:138,name:"Pearl White",              hex:"#F8F6F0", finish:"pearl"},
+  /* Chrome */
+  {id:59, name:"Clear Carbon",             hex:"#cccccc", finish:"chrome"},
+  {id:60, name:"Silver Chrome",            hex:"#c0c0c0", finish:"chrome"},
+  {id:61, name:"Super Chrome Black",       hex:"#111111", finish:"chrome"},
+  {id:62, name:"Super Chrome Gold",        hex:"#d4af37", finish:"chrome"},
+  /* Matt */
+  {id:24, name:"Gray Matt",                hex:"#79787d", finish:"matt"},
+  {id:25, name:"Silver Matt",              hex:"#9a9c9b", finish:"matt"},
+  {id:26, name:"Black Matt",               hex:"#080405", finish:"matt"},
+  {id:27, name:"Shadow Blue Matt",         hex:"#0c3869", finish:"matt"},
+  {id:28, name:"Gold Matt",                hex:"#b58c18", finish:"matt"},
+  {id:29, name:"Green Purple",             hex:"#6062b7", finish:"matt"},
+  {id:30, name:"Green Blue",               hex:"#554a8c", finish:"matt"},
+  {id:31, name:"Mountain Green",           hex:"#263838", finish:"matt"},
+  {id:33, name:"Purple Haze Matt",         hex:"#516830", finish:"matt"},
+  {id:37, name:"Matte Black Charm Red",    hex:"#3a394a", finish:"matt"},
+  {id:40, name:"Khaki Green",              hex:"#5a5a2a", finish:"matt"},
+  {id:43, name:"Ashes",                    hex:"#d9d5c2", finish:"matt"},
+  {id:45, name:"Matte AMG Gray",           hex:"#d8d8da", finish:"matt"},
+  /* Metal */
+  {id:101,name:"Matt Metal White",         hex:"#FBFCF6", finish:"metal"},
+  {id:103,name:"Matt Metal Pearl White",   hex:"#eeebd9", finish:"metal"},
+  {id:104,name:"Matt Metal Capri Grey Purple",hex:"#392A48",finish:"metal"},
+  {id:105,name:"Matt Metal Racing Blue",   hex:"#04aeec", finish:"metal"},
+  {id:106,name:"Matt Blue Chrome",         hex:"#2c6fbb", finish:"metal"},
+  {id:107,name:"Matt Metal Shadow Blue",   hex:"#778ba5", finish:"metal"},
+  {id:108,name:"Matt Metal Black Blue",    hex:"#0d0c0b", finish:"metal"},
+  {id:109,name:"Matt Metal Shadow Brown",  hex:"#BB8D6F", finish:"metal"},
+  {id:110,name:"Matt Metal Night Purple",  hex:"#392A48", finish:"metal"},
+  {id:111,name:"Matt Metal Black Purple",  hex:"#35063e", finish:"metal"},
+  {id:112,name:"Matt Metal Romanee Red",   hex:"#B33F40", finish:"metal"},
+  {id:113,name:"Matt Metal Flame Red",     hex:"#A72920", finish:"metal"},
+  {id:114,name:"Matt Metal Covert Green",  hex:"#c8d5b9", finish:"metal"},
+  {id:115,name:"Matt Metal Blackish Green",hex:"#1A2421", finish:"metal"},
+  {id:116,name:"Matt Metal Olive Green",   hex:"#A8A65C", finish:"metal"},
+  {id:117,name:"Matt Metal Venom Green",   hex:"#728C00", finish:"metal"},
+  {id:118,name:"Matt Metal Army Green",    hex:"#4B5320", finish:"metal"},
+  {id:119,name:"Matt Metal Khaki Green",   hex:"#8A865D", finish:"metal"},
+  {id:120,name:"Matt Metal Bronze",        hex:"#B4945A", finish:"metal"},
+  {id:121,name:"Matt Metal Chartreuse",    hex:"#B1BC55", finish:"metal"},
+  {id:122,name:"Matt Metal Shadow Gold",   hex:"#D2BF37", finish:"metal"},
+  {id:123,name:"Matt Metal Gold Brown",    hex:"#BB8D6F", finish:"metal"},
+  {id:124,name:"Matt Metal Rose Gold",     hex:"#CBA3B2", finish:"metal"},
+  {id:125,name:"Matt Metal Desert Yellow", hex:"#a29259", finish:"metal"},
+  {id:126,name:"Matt Metal Blue With Gold",hex:"#548696", finish:"metal"},
+  {id:127,name:"Matt Metal Racing Yellow", hex:"#F8CD02", finish:"metal"},
+  {id:128,name:"Matt Metal Tungsten Steel",hex:"#b5ac9f", finish:"metal"},
+  {id:129,name:"Matt Metal Titanium Grey", hex:"#545b62", finish:"metal"},
+  {id:130,name:"Matt Metal Space Grey",    hex:"#65737e", finish:"metal"},
+  {id:131,name:"Matt Metal AMG Grey",      hex:"#A8A9AD", finish:"metal"},
+  {id:132,name:"Matt Metal Deep Grey",     hex:"#677986", finish:"metal"},
+  {id:133,name:"Matt Metal Gun Grey",      hex:"#818589", finish:"metal"},
+  {id:134,name:"Matt Metal Knight Gray",   hex:"#808f95", finish:"metal"},
+  {id:135,name:"Matt Metal Extreme Black", hex:"#060505", finish:"metal"},
+  {id:136,name:"Matt Metal Ceramic Black", hex:"#423a3a", finish:"metal"},
+  {id:137,name:"Matt Metal Black",         hex:"#000000", finish:"metal"},
+  /* PPF */
+  {id:102,name:"TPU Matt White",           hex:"#FDFBF9", finish:"ppf"},
+  {id:149,name:"Tungsten Steel PPF",       hex:"#b5ac9f", finish:"ppf"},
+  {id:150,name:"Liquid Gun Grey PPF",      hex:"#818589", finish:"ppf"},
+  {id:151,name:"Chocolate PPF",            hex:"#713600", finish:"ppf"},
+];
+
+/* ================================================================
+   ДАННЫЕ — VINYL (виниловая плёнка)
+   ================================================================ */
+const VINYL_COLORS = [
+  /* Gloss Solid */
+  {id:"N001",name:"Gloss Black",               hex:"#0a0a0a", finish:"vgloss"},
+  {id:"N002",name:"Gloss Piano White",          hex:"#f5f5f5", finish:"vgloss"},
+  {id:"N003",name:"Glossy Ferrari Red",         hex:"#cc0000", finish:"vgloss"},
+  {id:"N004",name:"Gloss Coral Orange",         hex:"#e85d26", finish:"vgloss"},
+  {id:"N005",name:"Gloss Rouge Pink",           hex:"#c0306e", finish:"vgloss"},
+  {id:"N006",name:"Gloss Lemon Yellow",         hex:"#f5e642", finish:"vgloss"},
+  {id:"N007",name:"Gloss Gold Yellow",          hex:"#d4a017", finish:"vgloss"},
+  {id:"N008",name:"Gloss Mclaren Orange",       hex:"#f47a26", finish:"vgloss"},
+  {id:"N009",name:"Gloss Lava Orange",          hex:"#d94f00", finish:"vgloss"},
+  {id:"N010",name:"Gloss Porsche Dolphin Grey", hex:"#8a8c8e", finish:"vgloss"},
+  {id:"N011",name:"Gloss Porsche Chalk Grey",   hex:"#b8b5ae", finish:"vgloss"},
+  {id:"N012",name:"Gloss Nardo Grey",           hex:"#8f8f8f", finish:"vgloss"},
+  {id:"N013",name:"Gloss BMW Brooklyn Grey",    hex:"#6e6e72", finish:"vgloss"},
+  {id:"N014",name:"Gloss Combat Grey",          hex:"#6a6a72", finish:"vgloss"},
+  {id:"N015",name:"Gloss Cement Grey",          hex:"#a0a09a", finish:"vgloss"},
+  {id:"N016",name:"Gloss Nardo Grey II",        hex:"#959595", finish:"vgloss"},
+  {id:"N017",name:"Gloss Storm Grey",           hex:"#7a7e82", finish:"vgloss"},
+  {id:"N018",name:"Gloss Sapphire Blue",        hex:"#0f3a72", finish:"vgloss"},
+  {id:"N019",name:"Gloss Sky Blue",             hex:"#4aacd4", finish:"vgloss"},
+  {id:"N020",name:"Gloss Ice Blue",             hex:"#aad4e8", finish:"vgloss"},
+  {id:"N021",name:"Gloss Tiffany",              hex:"#81d8d0", finish:"vgloss"},
+  {id:"N022",name:"Gloss Avocado Green",        hex:"#568203", finish:"vgloss"},
+  {id:"N023",name:"Gloss Tanager Turquoise",    hex:"#00b09c", finish:"vgloss"},
+  {id:"N024",name:"Gloss Apple Green",          hex:"#8db600", finish:"vgloss"},
+  {id:"N025",name:"Gloss Viper Green",          hex:"#1a7a00", finish:"vgloss"},
+  {id:"N026",name:"Gloss Porsche Moss Green",   hex:"#3d6b35", finish:"vgloss"},
+  {id:"N027",name:"Gloss Porsche Auratium Green",hex:"#4a7c3f",finish:"vgloss"},
+  {id:"N028",name:"Gloss Audi Hell Green",      hex:"#6b8e23", finish:"vgloss"},
+  {id:"N029",name:"Gloss Dark Mohsen Green",    hex:"#2d4a1e", finish:"vgloss"},
+  {id:"N030",name:"Glossy Khaki Green",         hex:"#5e5a2a", finish:"vgloss"},
+  {id:"N031",name:"Gloss Combat Green",         hex:"#4a5240", finish:"vgloss"},
+  {id:"N032",name:"Gloss Pepper White",         hex:"#ebebeb", finish:"vgloss"},
+  {id:"N033",name:"Gloss Benz AMG Sand Beige",  hex:"#c8b89a", finish:"vgloss"},
+  {id:"N034",name:"Gloss Caramel Brown",        hex:"#8b5e3c", finish:"vgloss"},
+  {id:"N035",name:"Gloss Audi Battle Green",    hex:"#3b5030", finish:"vgloss"},
+  {id:"N036",name:"Gloss Military Green",       hex:"#4b5320", finish:"vgloss"},
+  /* Matt Vinyl */
+  {id:"N037",name:"Matt Smoky Gray",            hex:"#6e6e6e", finish:"vmatt"},
+  {id:"N038",name:"Matt Smoky Black",           hex:"#1a1a1a", finish:"vmatt"},
+  {id:"N039",name:"Matt Super Black",           hex:"#080808", finish:"vmatt"},
+  {id:"N040",name:"Frosted Black",              hex:"#111111", finish:"vmatt"},
+  /* Carbon */
+  {id:"N041",name:"6D Gloss Carbon",            hex:"#1a1a1a", finish:"vcarbon"},
+  /* Matte Metallic */
+  {id:"N042",name:"Matte Metallic Black",       hex:"#1c1c1e", finish:"vmetal"},
+  {id:"N043",name:"Matte Metallic White",       hex:"#e8e8e8", finish:"vmetal"},
+  {id:"N044",name:"Matte Metallic Silver",      hex:"#a8a9ad", finish:"vmetal"},
+  {id:"N045",name:"Matte Metallic Black Green", hex:"#1a2a1e", finish:"vmetal"},
+  {id:"N046",name:"Matte Metallic Midnight Blue",hex:"#0d1b3e",finish:"vmetal"},
+  {id:"N047",name:"Matte Metallic Russet Red",  hex:"#8b2500", finish:"vmetal"},
+  {id:"N048",name:"Matte Metallic Yellow",      hex:"#d4a800", finish:"vmetal"},
+  {id:"N049",name:"Matte Metallic Gunmetal Grey",hex:"#3d3d3d",finish:"vmetal"},
+  {id:"N050",name:"Matte Metallic Charcoal Grey",hex:"#4a4a4a",finish:"vmetal"},
+  {id:"N051",name:"Matte Metallic Graphite Grey",hex:"#565656",finish:"vmetal"},
+  {id:"N052",name:"Matte Metallic Gray",        hex:"#6e6e6e", finish:"vmetal"},
+  {id:"N053",name:"Matte Metallic Brown",       hex:"#5c3a1e", finish:"vmetal"},
+  /* Diamond */
+  {id:"N054",name:"Gloss Diamond Black",        hex:"#0d0d0d", finish:"vdiamond"},
+  {id:"N055",name:"Gloss Diamond White",        hex:"#f0f0f2", finish:"vdiamond"},
+  /* Fantasy / Chameleon */
+  {id:"N056",name:"Fantasy Moonstone Grey",     hex:"#8a9098", finish:"vfantasy"},
+  {id:"N057",name:"Fantasy Grey Red",           hex:"#7a6060", finish:"vfantasy"},
+  {id:"N058",name:"Fantasy Grey Purple",        hex:"#6a6078", finish:"vfantasy"},
+  /* Coral */
+  {id:"N059",name:"Coral Apple Green",          hex:"#8db600", finish:"vcoral"},
+  {id:"N060",name:"Coral Yellow Green",         hex:"#b5cc00", finish:"vcoral"},
+  {id:"N061",name:"Coral Goldsands Orange",     hex:"#d4820a", finish:"vcoral"},
+  /* Gloss Metallic */
+  {id:"N062",name:"Gloss Metallic White",       hex:"#e8e8e8", finish:"vmetal"},
+  {id:"N063",name:"Gloss Metallic Mamba Green", hex:"#1a4a1e", finish:"vmetal"},
+  {id:"N064",name:"Gloss Metallic Sonoma Green",hex:"#5c7a50", finish:"vmetal"},
+  {id:"N065",name:"Gloss Metallic Emerald Green",hex:"#006b3c",finish:"vmetal"},
+  {id:"N066",name:"Gloss Metallic Black Green", hex:"#0a1e0d", finish:"vmetal"},
+  {id:"N067",name:"Gloss Metallic Royal Blue",  hex:"#002366", finish:"vmetal"},
+  {id:"N068",name:"Gloss Metallic Blueberry",   hex:"#2e1a6e", finish:"vmetal"},
+  {id:"N069",name:"Gloss Metallic Galaxy Blue",  hex:"#0d1b3e", finish:"vmetal"},
+  {id:"N070",name:"Gloss Metallic Soul Red",    hex:"#9b0a1a", finish:"vmetal"},
+  {id:"N071",name:"Gloss Metallic Lava Orange", hex:"#c04000", finish:"vmetal"},
+  {id:"N072",name:"Gloss Metallic Purple",      hex:"#4b0082", finish:"vmetal"},
+  {id:"N073",name:"Gloss Metallic Burgundy",    hex:"#6d0f1a", finish:"vmetal"},
+  /* Ghost Metallic */
+  {id:"N074",name:"Ghost Metallic Shadow Gold", hex:"#a08050", finish:"vghost"},
+  {id:"N075",name:"Ghost Metallic Black Green", hex:"#1a2a1a", finish:"vghost"},
+  {id:"N076",name:"Ghost Metallic Midnight Green",hex:"#0d2010",finish:"vghost"},
+  {id:"N077",name:"Ghost Metallic Dark Blue",   hex:"#0d1a30", finish:"vghost"},
+  /* Satin */
+  {id:"N078",name:"Satin Midnight Purple",      hex:"#2d1250", finish:"vsatin"},
+  /* Carbon / Textured */
+  {id:"N079",name:"Forget Carbon Glossy Black", hex:"#1a1a1a", finish:"vcarbon"},
+  {id:"N080",name:"Forget Carbon Glossy Red",   hex:"#8b0000", finish:"vcarbon"},
+  /* PET Chrome */
+  {id:"N081",name:"PET Satin Chrome Black",     hex:"#1a1a1a", finish:"vchr"},
+  {id:"N082",name:"PET Satin Chrome Blue",      hex:"#1a2a5e", finish:"vchr"},
+  {id:"N083",name:"PET Satin Chrome Romanee Red",hex:"#7a1a1a",finish:"vchr"},
+  /* Splendid */
+  {id:"N084",name:"Splendid Midnight Purple",   hex:"#1a0a3a", finish:"vsatin"},
+];
+
+/* ================================================================
+   CONFIG
+   ================================================================ */
+const PPF_FINISH_LABEL  = {gloss:"Gloss",matt:"Matt",pearl:"Pearl",chrome:"Chrome",ppf:"PPF",metal:"Metal"};
+const VINYL_FINISH_LABEL= {vgloss:"Gloss",vmatt:"Matt",vmetal:"Metallic",vchr:"Chrome",vsatin:"Satin",vghost:"Ghost",vfantasy:"Fantasy",vcoral:"Coral",vdiamond:"Diamond",vcarbon:"Carbon"};
+
+const PPF_SECTIONS = [
+  {key:"all",  label:"Все"},
+  {key:"gloss",label:"Gloss"},
+  {key:"pearl",label:"Pearl"},
+  {key:"chrome",label:"Chrome"},
+  {key:"matt", label:"Matt"},
+  {key:"metal",label:"Metal"},
+  {key:"ppf",  label:"PPF"},
+];
+const VINYL_SECTIONS = [
+  {key:"all",    label:"Все"},
+  {key:"vgloss", label:"Gloss"},
+  {key:"vmatt",  label:"Matt"},
+  {key:"vmetal", label:"Metallic"},
+  {key:"vsatin", label:"Satin"},
+  {key:"vghost", label:"Ghost"},
+  {key:"vfantasy",label:"Fantasy"},
+  {key:"vcoral", label:"Coral"},
+  {key:"vdiamond",label:"Diamond"},
+  {key:"vcarbon",label:"Carbon"},
+  {key:"vchr",   label:"Chrome"},
+];
+
+const PPF_SECTION_NAMES = {
+  gloss:"✨ Gloss — Глянец",pearl:"🔮 Pearl — Перламутр",
+  chrome:"🪞 Chrome — Хром",matt:"🔲 Matt — Матовый",
+  metal:"🔩 Matt Metal — Металлик",ppf:"🛡️ PPF — Прозрачная",
+};
+const VINYL_SECTION_NAMES = {
+  vgloss:"✨ Gloss — Глянец",vmatt:"🔲 Matt — Матовый",
+  vmetal:"🔩 Metallic — Металлик",vsatin:"🫧 Satin — Сатин",
+  vghost:"👻 Ghost — Хамелеон",vfantasy:"🌈 Fantasy — Фэнтези",
+  vcoral:"🪸 Coral — Кораллы",vdiamond:"💎 Diamond — Бриллиант",
+  vcarbon:"🕷️ Carbon — Карбон",vchr:"🪞 PET Chrome — Хром",
+};
+
+/* ================================================================
+   STATE
+   ================================================================ */
+let activeCat    = "ppf";   /* "ppf" | "vinyl" */
+let activeFilter = "all";
+let searchQuery  = "";
+let selectedColor = null;
+
+const tg = window.Telegram?.WebApp ?? null;
+if (tg) { try { tg.expand(); } catch(e){} }
+
+/* ================================================================
+   HELPERS
+   ================================================================ */
+function isLight(hex) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return (0.299*r+0.587*g+0.114*b) > 155;
+}
+function getFinishLabel(finish) {
+  return PPF_FINISH_LABEL[finish] || VINYL_FINISH_LABEL[finish] || finish;
+}
+function getSectionNames() {
+  return activeCat === "ppf" ? PPF_SECTION_NAMES : VINYL_SECTION_NAMES;
+}
+function getSectionOrder() {
+  if (activeCat === "ppf")   return ["gloss","pearl","chrome","matt","metal","ppf"];
+  return ["vgloss","vmatt","vmetal","vsatin","vghost","vfantasy","vcoral","vdiamond","vcarbon","vchr"];
+}
+function getColors()   { return activeCat === "ppf" ? PPF_COLORS : VINYL_COLORS; }
+function getSections() { return activeCat === "ppf" ? PPF_SECTIONS : VINYL_SECTIONS; }
+
+/* ================================================================
+   CATEGORY SWITCH
+   ================================================================ */
+function setCategory(cat) {
+  activeCat    = cat;
+  activeFilter = "all";
+  selectedColor = null;
+
+  const ppfBtn   = document.getElementById("catPPF");
+  const vinylBtn = document.getElementById("catVinyl");
+
+  if (cat === "ppf") {
+    ppfBtn.classList.remove("inactive");
+    vinylBtn.classList.remove("active");
+  } else {
+    ppfBtn.classList.add("inactive");
+    vinylBtn.classList.add("active");
+  }
+
+  buildSubTabs();
+  render();
+  document.getElementById("confirmBar").classList.remove("visible");
+}
+
+/* ================================================================
+   BUILD SUB-TABS
+   ================================================================ */
+function buildSubTabs() {
+  const tabs = document.getElementById("filterTabs");
+  tabs.innerHTML = "";
+  getSections().forEach(s => {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (s.key === activeFilter ? " active" : "");
+    btn.dataset.key = s.key;
+    btn.textContent = s.label;
+    btn.addEventListener("click", () => {
+      activeFilter = s.key;
+      tabs.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      render();
+    });
+    tabs.appendChild(btn);
+  });
+}
+
+/* ================================================================
+   MOUSE TRACKING
+   ================================================================ */
+function attachMouseTracking(card, swatch, finish) {
+  const trackFinishes = ['gloss','pearl','chrome','metal','vgloss','vmetal','vchr','vghost','vfantasy','vdiamond'];
+  if (!trackFinishes.includes(finish)) return;
+  const cfg = {
+    gloss:{size:70,alpha:0.38},pearl:{size:90,alpha:0.22},chrome:{size:110,alpha:0.50},metal:{size:80,alpha:0.18},
+    vgloss:{size:70,alpha:0.35},vmetal:{size:80,alpha:0.20},vchr:{size:110,alpha:0.50},
+    vghost:{size:90,alpha:0.25},vfantasy:{size:100,alpha:0.28},vdiamond:{size:100,alpha:0.45},
+  };
+  const {size,alpha} = cfg[finish]||{size:70,alpha:0.3};
+  const hl = document.createElement("div");
+  hl.className = "swatch-highlight";
+  hl.style.opacity = "0";
+  swatch.appendChild(hl);
+  let rafId = null;
+  card.addEventListener("mouseenter", () => { hl.style.opacity = "1"; });
+  card.addEventListener("mouseleave", () => { hl.style.opacity = "0"; cancelAnimationFrame(rafId); });
+  card.addEventListener("mousemove", e => {
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      const rect = swatch.getBoundingClientRect();
+      const x = ((e.clientX-rect.left)/rect.width*100).toFixed(1);
+      const y = ((e.clientY-rect.top)/rect.height*100).toFixed(1);
+      hl.style.background = `radial-gradient(circle ${size}% at ${x}% ${y}%, rgba(255,255,255,${alpha}) 0%, transparent 70%)`;
+    });
+  });
+}
+
+/* ================================================================
+   MAKE CARD
+   ================================================================ */
+function makeCard(c, index) {
+  const card = document.createElement("div");
+  card.className = "color-card";
+  card.dataset.finish = c.finish;
+  if (selectedColor && selectedColor.id === c.id && selectedColor._cat === activeCat) card.classList.add("selected");
+
+  const badgeStyle = isLight(c.hex)
+    ? "background:rgba(0,0,0,0.18);color:rgba(0,0,0,0.65)"
+    : "background:rgba(0,0,0,0.50);color:rgba(255,255,255,0.80)";
+
+  card.innerHTML = `
+    <div class="swatch" style="background:${c.hex}">
+      <div class="check-icon">
+        <svg viewBox="0 0 14 14"><polyline points="2,7 6,11 12,3"/></svg>
+      </div>
+      <span class="finish-badge" style="${badgeStyle}">${getFinishLabel(c.finish)}</span>
+    </div>
+    <div class="color-label">
+      <div class="num">${c.id}</div>
+      <div class="name">${c.name}</div>
+    </div>
+  `;
+
+  const swatch = card.querySelector(".swatch");
+  attachMouseTracking(card, swatch, c.finish);
+
+  const delay = Math.min(index * 18, 500);
+  setTimeout(() => card.classList.add("visible"), delay);
+
+  card.addEventListener("click", () => selectColor(c, card));
+  return card;
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function getFiltered() {
+  const colors = getColors();
+  return colors.filter(c => {
+    const mf = activeFilter === "all" || c.finish === activeFilter;
+    const q  = searchQuery.trim().toLowerCase();
+    const ms = !q || c.name.toLowerCase().includes(q) || String(c.id).toLowerCase().includes(q);
+    return mf && ms;
+  });
+}
+
+function render() {
+  const gridArea = document.getElementById("gridArea");
+  gridArea.innerHTML = "";
+  const filtered = getFiltered();
+  document.getElementById("visibleCount").textContent = filtered.length;
+
+  if (!filtered.length) {
+    const g = document.createElement("div");
+    g.className = "color-grid";
+    g.innerHTML = `<div class="empty-state"><p style="font-size:1rem">Ничего не найдено</p></div>`;
+    gridArea.appendChild(g);
+    return;
+  }
+
+  const sectionOrder = getSectionOrder();
+  const sectionNames = getSectionNames();
+
+  if (activeFilter === "all") {
+    sectionOrder.forEach(fin => {
+      const group = filtered.filter(c => c.finish === fin);
+      if (!group.length) return;
+      const sh = document.createElement("div");
+      sh.className = "section-header";
+      sh.innerHTML = `<h2>${sectionNames[fin] || fin}</h2>`;
+      gridArea.appendChild(sh);
+      const grid = document.createElement("div");
+      grid.className = "color-grid";
+      group.forEach((c, i) => grid.appendChild(makeCard(c, i)));
+      gridArea.appendChild(grid);
+    });
+  } else {
+    const grid = document.createElement("div");
+    grid.className = "color-grid";
+    filtered.forEach((c, i) => grid.appendChild(makeCard(c, i)));
+    gridArea.appendChild(grid);
+  }
+}
+
+/* ================================================================
+   SELECT
+   ================================================================ */
+function selectColor(c, cardEl) {
+  document.querySelectorAll(".color-card.selected").forEach(el => el.classList.remove("selected"));
+  if (selectedColor && selectedColor.id === c.id && selectedColor._cat === activeCat) {
+    selectedColor = null;
+    document.getElementById("confirmBar").classList.remove("visible");
+    return;
+  }
+  selectedColor = {...c, _cat: activeCat};
+  cardEl.classList.add("selected");
+
+  const catLabel = activeCat === "ppf" ? "PPF" : "Vinyl";
+  document.getElementById("confirmPreview").style.background = c.hex;
+  document.getElementById("confirmPreview").style.borderColor = isLight(c.hex) ? "#555" : c.hex;
+  document.getElementById("confirmNum").textContent = `${c.id} · ${getFinishLabel(c.finish)} · ${catLabel}`;
+  document.getElementById("confirmName").textContent = c.name;
+  document.getElementById("confirmBar").classList.add("visible");
+  cardEl.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+/* ================================================================
+   CONFIRM
+   ================================================================ */
+document.getElementById("confirmBtn").addEventListener("click", () => {
+  if (!selectedColor) return;
+  const catLabel = selectedColor._cat === "ppf" ? "PPF" : "Vinyl";
+  const text = `[${catLabel}] ${selectedColor.id} ${selectedColor.name}`;
+  if (tg) {
+    try { tg.sendData(text); setTimeout(() => { try { tg.close(); } catch(e){} }, 250); }
+    catch(e) { showToast("Ошибка отправки"); return; }
+  }
+  showToast(`Выбрано: ${selectedColor.name}`);
+  document.getElementById("confirmBar").classList.remove("visible");
+});
+
+/* ================================================================
+   SEARCH
+   ================================================================ */
+document.getElementById("searchInput").addEventListener("input", e => {
+  searchQuery = e.target.value;
+  render();
+});
+
+/* ================================================================
+   TOAST
+   ================================================================ */
+let toastTimer;
+function showToast(msg) {
+  const t=document.getElementById("toast"); const m=document.getElementById("toastMsg");
+  m.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),2500);
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+buildSubTabs();
+render();
+</script>
+</body>
+</html>
